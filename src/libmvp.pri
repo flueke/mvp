@@ -1,4 +1,4 @@
-QT += serialport concurrent
+QT += serialport concurrent gui widgets
 CONFIG += c++11
 
 HEADERS  += \
