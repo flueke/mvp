@@ -1,5 +1,5 @@
 #include "tests.h"
-#include "mvp_flash.h"
+#include "flash.h"
 
 using namespace mvp;
 
@@ -82,8 +82,6 @@ void test_increment()
 void TestFlash::test_address()
 {
   test_constructors<Address>();
-  test_constructors<Address2>();
 
   test_increment<Address>();
-  test_increment<Address2>();
 }

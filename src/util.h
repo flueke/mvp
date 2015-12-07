@@ -12,7 +12,7 @@
 #include <functional>
 #include <system_error>
 
-#include <gsl/gsl-lite.h>
+#include <gsl.h>
 
 class QThread;
 
@@ -66,9 +66,9 @@ class QtExceptionPtr: public QException
     std::exception_ptr m_ptr;
 };
 
+// Note: requires specifying the return type T at the point of use
 template <typename T, typename Func>
-//QFuture<T> run_in_thread(std::function<T ()> func, QObject *thread_dependent_obj) // requires explicit creation of a std::function object (untested)
-QFuture<T> run_in_thread(Func func, QObject *thread_dependent_obj) // requires specifying the return type T at the point of use
+QFuture<T> run_in_thread(Func func, QObject *thread_dependent_obj)
 {
   return QtConcurrent::run([=] {
       try {

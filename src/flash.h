@@ -4,7 +4,7 @@
 #include <QMap>
 #include <QString>
 #include <QDebug>
-#include <gsl/gsl-lite.h>
+#include <gsl.h>
 #include "util.h"
 
 namespace mvp

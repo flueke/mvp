@@ -1,18 +1,9 @@
 TEMPLATE = lib
 
-QT += core gui widgets serialport concurrent
+QT += core gui widgets
 
 CONFIG += debug_and_release c++11
 
-HEADERS  += \
-  $$PWD/flash.h \
-  $$PWD/util.h \
-  $$PWD/port_helper.h \
+TARGET = libmvp
 
-SOURCES += \
-  $$PWD/flash.cc \
-  $$PWD/util.cc \
-  $$PWD/port_helper.cc \
-
-INCLUDEPATH += $$PWD
-
+include($$PWD/libmvp.pri)

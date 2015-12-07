@@ -4,7 +4,7 @@
 #include <QList>
 #include <QObject>
 #include <QSerialPortInfo>
-#include <gsl/gsl-lite.h>
+#include <gsl.h>
 
 namespace mvp
 {
