@@ -5,22 +5,34 @@
 namespace mvp
 {
 
-PortHelper::PortHelper(gsl::not_null<QSerialPort *> port, QObject *parent)
-  : QObject(parent)
-  , m_port(port)
-  {}
-
-PortInfoList PortHelper::get_available_ports()
-{
+static PortInfoProvider default_portinfo_provider = [] {
   auto ports(QSerialPortInfo::availablePorts());
 
   ports.erase(std::remove_if(ports.begin(), ports.end(), [](const QSerialPortInfo &info) {
           return info.manufacturer() != "FTDI" || info.serialNumber().isEmpty();
         }), ports.end());
 
-  emit available_ports_changed(ports);
-
   return ports;
+};
+
+PortHelper::PortHelper(gsl::not_null<QSerialPort *> port, QObject *parent)
+  : QObject(parent)
+  , m_port(port)
+  , m_portinfo_provider(default_portinfo_provider)
+{
+}
+
+PortHelper::PortHelper(gsl::not_null<QSerialPort *> port, PortInfoProvider pip,
+  QObject *parent)
+  : QObject(parent)
+  , m_port(port)
+  , m_portinfo_provider(pip)
+{
+}
+
+PortInfoList PortHelper::get_available_ports() const
+{
+  return m_portinfo_provider();
 }
 
 void PortHelper::set_selected_port_name(const QString &name)
@@ -46,6 +58,8 @@ void PortHelper::open_port()
         [&](const QSerialPortInfo &info) { return info.serialNumber() == serial; });
 
     if (it == ports.end()) {
+      m_selected_port_info = QSerialPortInfo();
+      emit current_port_name_changed(QString());
       qDebug() << "open_port(): could not find port with serial number" << serial;
       throw std::runtime_error("Could not find port with serial number " + serial.toStdString());
     }
@@ -69,13 +83,17 @@ void PortHelper::open_port()
     throw make_com_error(m_port);
   }
 
-
   qDebug()
     << "open_port(): end"
     << "portName ="     << m_port->portName()
     << "isOpen ="       << m_port->isOpen()
     << "errorString ="  << m_port->errorString()
     << "portError ="    << port_error_to_string(m_port->error());
+}
+
+void PortHelper::refresh()
+{
+  emit available_ports_changed(get_available_ports());
 }
 
 } // ns mvp
