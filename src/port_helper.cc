@@ -93,6 +93,7 @@ void PortHelper::open_port()
 
 void PortHelper::refresh()
 {
+  qDebug() << "PortHelper::refresh()";
   emit available_ports_changed(get_available_ports());
 }
 
