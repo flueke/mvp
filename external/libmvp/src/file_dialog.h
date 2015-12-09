@@ -15,6 +15,9 @@ class FileDialog: public QFileDialog
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
+    QString get_selected_file_or_dir() const
+    { return selectedFiles().value(0, QString()); }
+
   private slots:
     void handle_open_button_clicked();
 
