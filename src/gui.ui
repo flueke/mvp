@@ -267,5 +267,21 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pb_refresh_serial_ports</sender>
+   <signal>clicked()</signal>
+   <receiver>action_refresh_serial_ports</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>246</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
 </ui>
