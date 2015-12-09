@@ -13,7 +13,11 @@ FileDialog::FileDialog(QWidget *parent)
   setFileMode(QFileDialog::Directory);
   setNameFilter("ZIP files (*.zip)");
 
-  get_open_button()->installEventFilter(this);
+  auto open_button = get_open_button();
+
+  open_button->installEventFilter(this);
+  open_button->disconnect(SIGNAL(clicked()));
+  connect(open_button, SIGNAL(clicked()), this, SLOT(handle_open_button_clicked()));
 }
 
 bool FileDialog::eventFilter(QObject *watched, QEvent *event)
@@ -32,6 +36,17 @@ QPushButton *FileDialog::get_open_button() const
 {
   return findChild<QDialogButtonBox *>()->button(
     QDialogButtonBox::Open);
+}
+
+void FileDialog::handle_open_button_clicked()
+{
+  auto selected = selectedFiles().value(0, QString());
+
+  QFileInfo fi(selected);
+
+  if (fi.exists()) {
+    done(QDialog::Accepted);
+  }
 }
 
 } // ns mvp
