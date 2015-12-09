@@ -15,6 +15,9 @@ class FileDialog: public QFileDialog
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
+  private slots:
+    void handle_open_button_clicked();
+
   private:
     QPushButton *get_open_button() const;
 };

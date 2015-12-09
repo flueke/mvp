@@ -1,11 +1,18 @@
 #include "file_dialog.h"
+#include "tests.h"
 
-int main(int argc, char *argv[])
+#include <QApplication>
+#include <QStandardPaths>
+
+void TestFileDialog::test()
 {
-  QApplication app(argc, argv);
+  const QString dir = QStandardPaths::standardLocations(
+        QStandardPaths::DocumentsLocation).value(0, QString());
 
   mvp::FileDialog dialog;
-  dialog.show();
 
-  return app.exec();
+  dialog.setDirectory(dir);
+  dialog.exec();
+
+  qDebug() << "selected files:" << dialog.selectedFiles();
 }

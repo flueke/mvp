@@ -14,3 +14,7 @@ SOURCES += \
   $$PWD/test_util.cc \
   $$PWD/test_flash.cc \
   $$PWD/testmain.cc \
+
+# GUI
+SOURCES += \
+  $$PWD/test_file_dialog.cc \
