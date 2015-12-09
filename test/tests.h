@@ -17,4 +17,13 @@ private slots:
   void test();
 };
 
+class GUITestBase: public QObject {};
+
+class TestFileDialog: public GUITestBase
+{
+  Q_OBJECT
+private slots:
+  void test();
+};
+
 #endif
