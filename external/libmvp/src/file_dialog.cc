@@ -10,9 +10,9 @@ FileDialog::FileDialog(QWidget *parent)
   setFileMode(QFileDialog::Directory);
   setNameFilter("ZIP files (*.zip)");
 
-  for (auto child: findChildren<QWidget *>()) {
-      qDebug() << child;
-  }
+  //for (auto child: findChildren<QWidget *>()) {
+  //    qDebug() << child;
+  //}
 }
 
 } // ns mvp
