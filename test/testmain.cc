@@ -1,9 +1,4 @@
 #include "tests.h"
-
-#ifdef RUN_GUI_TESTS
-#include "file_dialog.h"
-#endif
-
 #include <memory>
 #include <QtTest/QtTest>
 
@@ -15,18 +10,18 @@ int main(int argc, char *argv[])
       std::make_shared<TestFlash>()
     };
 
+#ifdef RUN_GUI_TESTS
+
+    tests.push_back(std::make_shared<TestFileDialog>());
+
+    QApplication app(argc, argv);
+
+#endif // RUN_GUI_TESTS
+
     for (auto obj: tests) {
       QTest::qExec(obj.get(), argc, argv);
     }
   }
 
-#ifdef RUN_GUI_TESTS
-  QApplication app(argc, argv);
-  mvp::FileDialog dialog;
-  dialog.show();
-
-  return app.exec();
-#else
   return 0;
-#endif // RUN_GUI_TESTS
 }
