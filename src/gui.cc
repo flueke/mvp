@@ -28,6 +28,7 @@ MVPGui::MVPGui(QWidget *parent)
   , m_flash(new Flash(m_object_holder))
   , m_port(new QSerialPort(m_object_holder))
   , m_port_helper(new PortHelper(m_port, m_object_holder))
+  , m_port_refresh_timer(new QTimer(m_object_holder))
   , m_progressbar(new QProgressBar)
 {
   m_object_holder->setObjectName("object holder");
@@ -75,12 +76,25 @@ MVPGui::MVPGui(QWidget *parent)
 #endif
 
   connect(m_port_helper, SIGNAL(available_ports_changed(const PortInfoList &)),
-      this, SLOT(handle_available_ports_changed(const PortInfoList &)), Qt::QueuedConnection);
+    this, SLOT(handle_available_ports_changed(const PortInfoList &)), Qt::QueuedConnection);
 
   connect(m_port_helper, SIGNAL(current_port_name_changed(const QString &)),
-      this, SLOT(handle_current_port_name_changed(const QString &)), Qt::QueuedConnection);
+    this, SLOT(handle_current_port_name_changed(const QString &)), Qt::QueuedConnection);
+
+  connect(m_port_refresh_timer, SIGNAL(timeout()),
+    m_port_helper, SLOT(refresh()));
+
+
+  auto ports = m_port_helper->get_available_ports();
+
+  if (ports.size()) {
+    m_port_helper->set_selected_port_name(ports[0].portName());
+  }
 
   on_action_refresh_serial_ports_triggered();
+
+  m_port_refresh_timer->setInterval(port_refresh_interval_ms);
+  m_port_refresh_timer->start();
 }
 
 MVPGui::~MVPGui()
@@ -116,6 +130,10 @@ void MVPGui::on_action_open_firmware_triggered()
 
   settings.setValue("directories/firmware", fi.path());
 
+  // TODO: try to create / set firmware object using the given filename
+  // TODO: report errors if the file/dir is not a valid firmware
+
+#if 0
   QFile f(filename);
 
   if (!f.open(QIODevice::ReadOnly)) {
@@ -160,6 +178,7 @@ void MVPGui::on_action_open_firmware_triggered()
     auto errstr(QString("Error: ") + e.what());
     append_to_log(errstr);
   }
+#endif
 }
 
 void MVPGui::on_combo_serial_ports_currentIndexChanged(int index)
@@ -246,6 +265,7 @@ void MVPGui::on_action_firmware_start_triggered()
 
   try {
     m_fw.waitForFinished();
+    // TODO: report success, DIP switch setting
   } catch (const std::exception &e) {
     append_to_log(QString(e.what()));
   }
@@ -342,24 +362,31 @@ void MVPGui::handle_future_finished()
 
 void MVPGui::handle_available_ports_changed(const PortInfoList &ports)
 {
+  QSignalBlocker b(ui->combo_serial_ports);
+
   ui->combo_serial_ports->clear();
 
-  auto msg = QString("Available ports: ");
-
   for (auto &info: ports) {
-    ui->combo_serial_ports->addItem(info.portName());
-    msg += QString("%1(%2), ").arg(info.portName()).arg(info.serialNumber());
+    ui->combo_serial_ports->addItem(
+      info.portName() + " - " + info.serialNumber(),
+      info.portName());
   }
-  QSignalBlocker b(ui->combo_serial_ports);
-  ui->combo_serial_ports->setCurrentIndex(0); // FIXME: keep the currently used port selected
 
-  append_to_log(msg);
+  ui->combo_serial_ports->addItem(QString());
+
+  handle_current_port_name_changed(m_port_helper->get_selected_port_name());
 }
 
 void MVPGui::handle_current_port_name_changed(const QString &port_name)
 {
+
+  int idx = ui->combo_serial_ports->findData(port_name);
+
+  if (idx < 0)
+    idx = ui->combo_serial_ports->count() - 1;
+
   QSignalBlocker b(ui->combo_serial_ports);
-  ui->combo_serial_ports->setCurrentText(port_name);
+  ui->combo_serial_ports->setCurrentIndex(idx);
 }
 
 

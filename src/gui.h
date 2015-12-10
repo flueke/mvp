@@ -23,6 +23,8 @@ namespace Ui
 namespace mvp
 {
 
+static const int port_refresh_interval_ms = 1000;
+
 class MVPGui: public QMainWindow
 {
   Q_OBJECT
@@ -61,6 +63,7 @@ class MVPGui: public QMainWindow
     Flash *m_flash;
     QSerialPort *m_port;
     PortHelper *m_port_helper;
+    QTimer *m_port_refresh_timer;
 
     QList<QSerialPortInfo> m_serial_ports;
 
