@@ -6,12 +6,14 @@ HEADERS  += \
   $$PWD/util.h \
   $$PWD/port_helper.h \
   $$PWD/file_dialog.h \
+  $$PWD/mdpp16_firmware.h \
 
 SOURCES += \
   $$PWD/flash.cc \
   $$PWD/util.cc \
   $$PWD/port_helper.cc \
   $$PWD/file_dialog.cc \
+  $$PWD/mdpp16_firmware.cc \
 
 INCLUDEPATH += $$PWD
 

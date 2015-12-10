@@ -74,12 +74,25 @@ namespace mvp
     const uchar access_code[]     = { 0xCD, 0xAB };
     const uchar area_index_max    = 0x03;
 
-    const int firmware_sectors  = 51;
-    const int sector_size       = 64 * 1024;
-    // 51 sectors * 64 * 1024 = 3342336
-    const ssize_t firmware_max_size = firmware_sectors * sector_size;
-    const size_t page_size      = 256;
     const size_t address_max    = 0xffffff;
+    const size_t sector_size       = 64 * 1024;
+    const size_t subsector_size    =  4 * 1024;
+    const size_t firmware_sectors  = 51;
+    const size_t page_size      = 256;
+
+    // 51 sectors * 64 * 1024 = 3342336
+    const size_t firmware_max_size = firmware_sectors * sector_size;
+
+    const QMap<uchar, size_t> section_max_sizes = {
+      {  1, sector_size },
+      {  2, sector_size },
+      {  3, sector_size * 8 },
+      {  8, subsector_size },
+      {  9, sector_size },
+      { 10, sector_size },
+      { 11, sector_size * 6 },
+      { 12, firmware_max_size }
+    };
 
     const int default_timeout_ms =  3000;
     const int erase_timeout_ms   = 60000;
@@ -87,6 +100,20 @@ namespace mvp
     const int init_timeout_ms    =  1000;
     const int recover_timeout_ms =   100;
   } // ns constants
+
+
+  inline bool is_valid_section(uchar section)
+  {
+    return constants::section_max_sizes.contains(section);
+  }
+
+  inline size_t get_section_max_size(uchar section)
+  {
+    if (!is_valid_section(section))
+      throw std::runtime_error("invalid section index");
+
+    return constants::section_max_sizes.value(section);
+  }
 
   class Address
   {
