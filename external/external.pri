@@ -1,2 +1,2 @@
 INCLUDEPATH += $$PWD/gsl-lite/include
-include($$PWD/quazip/quazip.pri)
+INCLUDEPATH += $$PWD/quazip/quazip
