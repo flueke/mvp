@@ -84,6 +84,7 @@ namespace mvp
     const size_t firmware_max_size = firmware_sectors * sector_size;
 
     const QMap<uchar, size_t> section_max_sizes = {
+      {  0, 63 },
       {  1, sector_size },
       {  2, sector_size },
       {  3, sector_size * 8 },
