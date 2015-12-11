@@ -6,6 +6,7 @@ CONFIG += testcase
 
 TARGET = libmvptest
 TEMPLATE = app
+LIBS += -lquazip
 
 HEADERS  += \
   $$PWD/tests.h \
@@ -13,6 +14,7 @@ HEADERS  += \
 SOURCES += \
   $$PWD/test_util.cc \
   $$PWD/test_flash.cc \
+  $$PWD/test_mdpp16_firmware.cc \
   $$PWD/testmain.cc \
 
 # GUI
