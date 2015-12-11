@@ -6,24 +6,30 @@
 class TestFlash: public QObject
 {
   Q_OBJECT
-private slots:
-  void test_address();
+  private slots:
+    void test_address();
 };
 
 class TestQtExceptionPtr: public QObject
 {
   Q_OBJECT
-private slots:
-  void test();
+  private slots:
+    void test();
 };
 
-class GUITestBase: public QObject {};
-
-class TestFileDialog: public GUITestBase
+class TestFileDialog: public QObject
 {
   Q_OBJECT
-private slots:
-  void test();
+  private slots:
+    void test();
+};
+
+class TestMDPP16Firmware: public QObject
+{
+  Q_OBJECT
+  private slots:
+    void test();
+    void test_print_section_sizes();
 };
 
 #endif
