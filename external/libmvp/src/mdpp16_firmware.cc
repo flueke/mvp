@@ -34,39 +34,6 @@ void MDPP16Firmware::set_section(uchar section, const QVector<uchar> &data)
   m_section_map.insert(section, data);
 }
 
-static const QString filename_pattern = "^(\\d+).*\\.bin$";
-
-MDPP16Firmware from_dir(const QDir &dir)
-{
-  MDPP16Firmware ret;
-
-  QRegularExpression re(filename_pattern);
-
-  for (auto fi: dir.entryInfoList()) {
-    auto match = re.match(fi.fileName());
-    if (!match.hasMatch())
-      continue;
-
-    qDebug() << "reading" << fi.filePath();
-
-    const auto section = static_cast<uchar>(match.captured(1).toUInt());
-
-    QFile file(fi.filePath());
-
-    if (!file.open(QIODevice::ReadOnly))
-      throw std::runtime_error("Error opening file for reading");
-
-    QVector<uchar> data;
-
-    for (auto c: file.readAll())
-      data.push_back(static_cast<uchar>(c));
-
-    ret.set_section(section, data);
-  }
-
-  return ret;
-}
-
 std::runtime_error make_zip_error(const QString &msg, const QuaZip &zip)
 {
   auto m = QString("zip: %1 (error=%2)")
@@ -76,6 +43,156 @@ std::runtime_error make_zip_error(const QString &msg, const QuaZip &zip)
   return std::runtime_error(m.toStdString());
 }
 
+static const QString section_filename_pattern = QStringLiteral("^(\\d+).*\\.bin$");
+
+class FirmwareFile
+{
+  public:
+    virtual ~FirmwareFile() {};
+    virtual QString get_filename() const = 0;
+    virtual QVector<uchar> read_file_contents() = 0;
+};
+
+class DirFirmwareFile: public FirmwareFile
+{
+  public:
+    DirFirmwareFile(const QFileInfo &info = QFileInfo())
+      : m_fi(info)
+    {}
+
+    QString get_filename() const override
+    { return m_fi.fileName();}
+
+    QVector<uchar> read_file_contents() override
+    {
+      QFile file(m_fi.filePath());
+
+      if (!file.open(QIODevice::ReadOnly))
+        throw std::runtime_error("Error opening file for reading");
+
+      QVector<uchar> data;
+
+      for (auto c: file.readAll())
+        data.push_back(static_cast<uchar>(c));
+
+      return data;
+    }
+
+  private:
+    QFileInfo m_fi;
+};
+
+class ZipFirmwareFile: public FirmwareFile
+{
+  public:
+    ZipFirmwareFile(QuaZip *zip)
+      : m_zip(zip)
+    {}
+
+    QString get_filename() const override
+    { return m_zip->getCurrentFileName(); }
+
+    QVector<uchar> read_file_contents() override
+    {
+      QuaZipFile file(m_zip);
+
+      if (!file.open(QIODevice::ReadOnly))
+        throw make_zip_error("open current file", *m_zip);
+
+      QVector<uchar> data;
+
+      for (auto c: file.readAll())
+        data.push_back(static_cast<uchar>(c));
+
+      return data;
+    }
+
+  private:
+    QuaZip *m_zip;
+};
+
+typedef std::function<FirmwareFile * (void)> FirmwareFileGenerator;
+
+MDPP16Firmware from_firmware_file_generator(FirmwareFileGenerator &gen)
+{
+  MDPP16Firmware ret;
+  QRegularExpression re(section_filename_pattern);
+
+  while (auto fw_file_ptr = gen()) {
+    auto match = re.match(fw_file_ptr->get_filename());
+
+    if (!match.hasMatch())
+      continue;
+
+    const auto section = static_cast<uchar>(match.captured(1).toUInt());
+    ret.set_section(section, fw_file_ptr->read_file_contents());
+  }
+
+  return ret;
+}
+
+class ZipFirmwareFileGenerator
+{
+  public:
+    ZipFirmwareFileGenerator(QuaZip *zip)
+      : m_zip(zip)
+      , m_zip_fw_file(zip)
+    {}
+
+    FirmwareFile* operator()()
+    {
+      if (m_first_file) {
+        m_first_file = false;
+
+        if (!m_zip->goToFirstFile()
+          || m_zip->getZipError() != UNZ_OK) {
+          throw make_zip_error("goToFirstFile", *m_zip);
+        }
+
+        return &m_zip_fw_file;
+      }
+
+      if (!m_zip->goToNextFile()) {
+        if (m_zip->getZipError() != UNZ_OK) {
+          throw make_zip_error("goToNextFile", *m_zip);
+        }
+        return nullptr;
+      }
+
+      return &m_zip_fw_file;
+    }
+
+  private:
+    QuaZip *m_zip;
+    ZipFirmwareFile m_zip_fw_file;
+    bool m_first_file = true;
+};
+
+
+class DirFirmwareFileGenerator
+{
+  public:
+    DirFirmwareFileGenerator(const QDir &dir)
+      : m_fileinfo_list(dir.entryInfoList())
+      , m_iter(m_fileinfo_list.begin())
+    {}
+
+    FirmwareFile *operator()()
+    {
+      if (m_iter == m_fileinfo_list.end())
+        return nullptr;
+
+      m_dir_fw_file = std::make_shared<DirFirmwareFile>(*m_iter++);
+
+      return m_dir_fw_file.get();
+    }
+
+  private:
+    QFileInfoList m_fileinfo_list;
+    QFileInfoList::iterator m_iter;
+    std::shared_ptr<DirFirmwareFile> m_dir_fw_file;
+};
+
 MDPP16Firmware from_zip(const QString &zip_filename)
 {
   QuaZip zip(zip_filename);
@@ -83,36 +200,15 @@ MDPP16Firmware from_zip(const QString &zip_filename)
   if (!zip.open(QuaZip::mdUnzip))
     throw make_zip_error("open", zip);
 
-  MDPP16Firmware ret;
+  FirmwareFileGenerator gen = ZipFirmwareFileGenerator(&zip);
 
-  QRegularExpression re(filename_pattern);
+  return from_firmware_file_generator(gen);
+}
 
-  for (bool more=zip.goToFirstFile(); more; more=zip.goToNextFile()) {
-
-    if (zip.getZipError() != UNZ_OK)
-      throw make_zip_error("loop through files", zip);
-
-    auto match = re.match(zip.getCurrentFileName());
-
-    if (!match.hasMatch())
-      continue;
-
-    const auto section = static_cast<uchar>(match.captured(1).toUInt());
-
-    QuaZipFile file(&zip);
-
-    if (!file.open(QIODevice::ReadOnly))
-      throw make_zip_error("open current file", zip);
-
-    QVector<uchar> data;
-
-    for (auto c: file.readAll())
-      data.push_back(static_cast<uchar>(c));
-
-    ret.set_section(section, data);
-  }
-
-  return ret;
+MDPP16Firmware from_dir(const QDir &dir)
+{
+  FirmwareFileGenerator gen = DirFirmwareFileGenerator(dir);
+  return from_firmware_file_generator(gen);
 }
 
 } // ns mvp
