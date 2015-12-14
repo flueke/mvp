@@ -30,6 +30,8 @@ class TestMDPP16Firmware: public QObject
   private slots:
     void test();
     void test_print_section_sizes();
+    void test_from_dir();
+    void test_from_zip();
 };
 
 #endif

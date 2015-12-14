@@ -49,3 +49,14 @@ void TestMDPP16Firmware::test_print_section_sizes()
     out << sec << sectors << bytes << endl;
   }
 }
+
+void TestMDPP16Firmware::test_from_dir()
+{
+  /* Needs a QDir as input.
+   * Test: no files, multi files, duplicate sections
+   */
+}
+
+void TestMDPP16Firmware::test_from_zip()
+{
+}
