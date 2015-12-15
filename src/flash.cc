@@ -149,7 +149,7 @@ void BasicFlash::write_instruction(const gsl::span<uchar> data, int timeout_ms)
 
   uchar opcode(*std::begin(data));
 
-  if (opcode != opcodes::WRF) {
+  if (opcode != opcodes::WRF && m_write_enabled) {
     // any instruction except WRF (and EFW) unsets write enable
     qDebug() << "clearing cached write_enable flag (instruction ="
       << op_to_string(opcode) << " != WRF)";

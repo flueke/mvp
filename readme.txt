@@ -1,8 +1,8 @@
 MVP MDPP16 Firmware
-===================
+============================================================
 
 Section max sizes
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  Section Sectors   Bytes
        0       0      63
        1       1   65536
@@ -15,10 +15,27 @@ Section max sizes
       12      51 3342336
 
 File names inside directory/zip
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Regexp for file names: "^d+.*\.bin$"
 with d+ containing the section index.
 
 Required sections: 
     *  8 - descr. text
     * 12 - firmware data
+
+Example:
+  firmware-testdir1/
+        08-description.bin
+        12-mdpp16_main.bin
+
+  Same works with a flat zip archive (no root folder inside the zip allowed as
+  of now).
+
+Flash algo
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+No special handling for specific section numbers yet.
+
+for each section in firmware:
+    erase(section)
+    write_memory(Addr(0, 0, 0), section, firmware.get_section(section))
+    verify_memory(Addr(0, 0, 0), section, firmware.get_section(section))
