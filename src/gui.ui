@@ -283,5 +283,21 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pb_firmware_start</sender>
+   <signal>clicked()</signal>
+   <receiver>action_firmware_start</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>137</x>
+     <y>147</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
 </ui>

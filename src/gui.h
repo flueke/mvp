@@ -8,6 +8,7 @@
 #include <QSerialPortInfo>
 #include "flash.h"
 #include "port_helper.h"
+#include "mdpp16_firmware.h"
 
 class QCloseEvent;
 class QLabel;
@@ -51,9 +52,10 @@ class MVPGui: public QMainWindow
     void handle_future_started();
     void handle_future_finished();
 
-  private:
     void append_to_log(const QString &s);
-    void read_if_available();
+
+  private:
+    void append_to_log_queued(const QString &s);
 
     uchar get_selected_area() const;
 
@@ -73,7 +75,7 @@ class MVPGui: public QMainWindow
 
     QProgressBar *m_progressbar;
 
-    QVector<uchar> m_firmware_buffer;
+    MDPP16Firmware m_firmware;
 };
 
 } // ns mvp

@@ -34,6 +34,17 @@ void MDPP16Firmware::set_section(uchar section, const QVector<uchar> &data)
   m_section_map.insert(section, data);
 }
 
+QList<uchar> MDPP16Firmware::get_present_section_numbers() const
+{
+  return m_section_map.keys();
+}
+
+bool MDPP16Firmware::has_required_sections() const
+{
+  // TODO: keep section number knowledge in one place (flash.h?)
+  return has_section(8) && has_section(12);
+}
+
 std::runtime_error make_zip_error(const QString &msg, const QuaZip &zip)
 {
   auto m = QString("zip: %1 (error=%2)")
@@ -45,15 +56,7 @@ std::runtime_error make_zip_error(const QString &msg, const QuaZip &zip)
 
 static const QString section_filename_pattern = QStringLiteral("^(\\d+).*\\.bin$");
 
-class FirmwareFile
-{
-  public:
-    virtual ~FirmwareFile() {};
-    virtual QString get_filename() const = 0;
-    virtual QVector<uchar> read_file_contents() = 0;
-};
-
-class DirFirmwareFile: public FirmwareFile
+class DirFirmwareFile: public FirmwareContentsFile
 {
   public:
     DirFirmwareFile(const QFileInfo &info = QFileInfo())
@@ -82,7 +85,7 @@ class DirFirmwareFile: public FirmwareFile
     QFileInfo m_fi;
 };
 
-class ZipFirmwareFile: public FirmwareFile
+class ZipFirmwareFile: public FirmwareContentsFile
 {
   public:
     ZipFirmwareFile(QuaZip *zip)
@@ -111,9 +114,7 @@ class ZipFirmwareFile: public FirmwareFile
     QuaZip *m_zip;
 };
 
-typedef std::function<FirmwareFile * (void)> FirmwareFileGenerator;
-
-MDPP16Firmware from_firmware_file_generator(FirmwareFileGenerator &gen)
+MDPP16Firmware from_firmware_file_generator(FirmwareContentsFileGenerator &gen)
 {
   MDPP16Firmware ret;
   QRegularExpression re(section_filename_pattern);
@@ -139,7 +140,7 @@ class ZipFirmwareFileGenerator
       , m_zip_fw_file(zip)
     {}
 
-    FirmwareFile* operator()()
+    FirmwareContentsFile* operator()()
     {
       if (m_first_file) {
         m_first_file = false;
@@ -173,16 +174,25 @@ class DirFirmwareFileGenerator
 {
   public:
     DirFirmwareFileGenerator(const QDir &dir)
-      : m_fileinfo_list(dir.entryInfoList())
+      : m_fileinfo_list(dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot))
       , m_iter(m_fileinfo_list.begin())
-    {}
-
-    FirmwareFile *operator()()
     {
+      qDebug() << "DirFirmwareFileGenerator:"
+               << "info list size =" << m_fileinfo_list.size()
+               << "dir.filePath() =" << dir.absolutePath();
+    }
+
+    FirmwareContentsFile *operator()()
+    {
+      qDebug() << "DirFirmwareFileGenerator::operator()";
+
       if (m_iter == m_fileinfo_list.end())
         return nullptr;
 
       m_dir_fw_file = std::make_shared<DirFirmwareFile>(*m_iter++);
+
+      qDebug() << "DirFirmwareFileGenerator::operator(): returning DirFirmwareFile"
+               << m_dir_fw_file->get_filename();
 
       return m_dir_fw_file.get();
     }
@@ -200,14 +210,14 @@ MDPP16Firmware from_zip(const QString &zip_filename)
   if (!zip.open(QuaZip::mdUnzip))
     throw make_zip_error("open", zip);
 
-  FirmwareFileGenerator gen = ZipFirmwareFileGenerator(&zip);
+  FirmwareContentsFileGenerator gen = ZipFirmwareFileGenerator(&zip);
 
   return from_firmware_file_generator(gen);
 }
 
 MDPP16Firmware from_dir(const QDir &dir)
 {
-  FirmwareFileGenerator gen = DirFirmwareFileGenerator(dir);
+  FirmwareContentsFileGenerator gen = DirFirmwareFileGenerator(dir);
   return from_firmware_file_generator(gen);
 }
 

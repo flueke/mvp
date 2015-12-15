@@ -108,6 +108,11 @@ namespace mvp
     return constants::section_max_sizes.contains(section);
   }
 
+  inline QList<uchar> get_valid_sections()
+  {
+    return constants::section_max_sizes.keys();
+  }
+
   inline size_t get_section_max_size(uchar section)
   {
     if (!is_valid_section(section))

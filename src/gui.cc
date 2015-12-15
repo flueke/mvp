@@ -2,6 +2,7 @@
 #include "ui_gui.h"
 #include "util.h"
 #include "file_dialog.h"
+#include "mdpp16_firmware.h"
 
 #include <QFileDialog>
 #include <QFileInfo>
@@ -15,6 +16,7 @@
 #include <QDateTime>
 #include <QSignalBlocker>
 #include <QCloseEvent>
+#include <QMetaObject>
 
 #include <utility>
 
@@ -57,15 +59,15 @@ MVPGui::MVPGui(QWidget *parent)
       append_to_log(text);
       }, Qt::QueuedConnection);
 
-#if 1
   connect(m_flash, &Flash::statusbyte_received, this, [=](const uchar &ss) {
-    append_to_log(QString("statusbyte(bin)=%1, inst_success=%2, area=%3, dipsw=%4")
-      .arg(ss, 0, 2)
-      .arg(bool(ss & status::inst_success))
-      .arg(get_area(ss))
-      .arg(get_dipswitch(ss)));
+    if (!bool(ss & status::inst_success)) {
+      append_to_log(QString("statusbyte(bin)=%1, inst_success=%2, area=%3, dipsw=%4")
+                    .arg(ss, 0, 2)
+                    .arg(bool(ss & status::inst_success))
+                    .arg(get_area(ss))
+                    .arg(get_dipswitch(ss)));
+    }
   }, Qt::QueuedConnection);
-#endif
 
 #if 0
   connect(m_flash, &Flash::instruction_written, this, [=](const QVector<uchar> &data) {
@@ -121,17 +123,90 @@ void MVPGui::on_action_open_firmware_triggered()
   if (file_dialog.exec() != QDialog::Accepted)
     return;
 
-  QString filename = file_dialog.get_selected_file_or_dir();
+  const QString filename = file_dialog.get_selected_file_or_dir();
+
+  qDebug() << "on_action_open_firmware_triggered(): filename ="
+           << filename;
 
   if (filename.isEmpty())
     return;
 
   QFileInfo fi(filename);
 
+  qDebug() << "on_action_open_firmware_triggered():"
+           << "filename =" << filename
+           << "absoluteDir =" << fi.absoluteDir()
+           << "absolutePath =" << fi.absolutePath()
+           << "path =" << fi.path();
+
   settings.setValue("directories/firmware", fi.path());
 
-  // TODO: try to create / set firmware object using the given filename
-  // TODO: report errors if the file/dir is not a valid firmware
+  ThreadMover tm(m_object_holder, 0);
+
+  auto f_result = run_in_thread<MDPP16Firmware>([&] {
+    auto firmware = fi.isDir()
+                    ? from_dir(filename)
+                    : from_zip(filename);
+
+    qDebug() << "Firmware object created from" << fi.filePath();
+
+    // TODO: move this code somewhere into libmvp
+    if (!firmware.has_required_sections())
+      throw std::runtime_error("Firmware: missing required sections (8 and/or 12)");
+
+    return firmware;
+  }, m_object_holder);
+
+#if 0
+    qDebug() << "Firmware contains at least sections 8 and 12";
+
+    qDebug() << "Firmware: open port";
+    m_port_helper->open_port();
+
+    qDebug() << "Firmware: ensure clean state";
+    m_flash->ensure_clean_state();
+
+    qDebug() << "Firmware: set area index" << area_index;
+    m_flash->set_area_index(area_index);
+
+    for (auto sec: get_valid_sections()) {
+      if (!firmware.has_section(sec))
+        continue;
+
+      qDebug() << "Firmware: working on section" << sec;
+
+      qDebug() << "Firmware: erase";
+
+      m_flash->erase_subindex(sec);
+
+      auto content = firmware.get_section(sec);
+      qDebug() << "Firmware: write memory" << content.size();
+      m_flash->write_memory({0, 0, 0}, sec, gsl::as_span(content));
+      qDebug() << "Firmware: verify memory" << content.size();
+      m_flash->verify_memory({0, 0, 0}, sec, gsl::as_span(content));
+
+      qDebug() << "Firmware: done with section" << sec;
+    }
+  }, m_object_holder);
+#endif
+
+  m_fw.setFuture(f_result);
+
+  if (!m_fw.isFinished()) {
+    m_progressbar->setVisible(true);
+    m_loop.exec();
+    m_progressbar->setVisible(false);
+  }
+
+  try {
+    m_firmware = f_result.result();
+    ui->le_filename->setText(filename);
+  } catch (const std::exception &e) {
+    m_firmware.clear();
+    ui->le_filename->clear();
+    append_to_log(QString(e.what()));
+  }
+
 
 #if 0
   QFile f(filename);
@@ -217,43 +292,59 @@ void MVPGui::on_action_firmware_start_triggered()
     return;
   }
 
-  auto area_index     = get_selected_area();
-  auto do_erase       = true;
-  auto do_blankcheck  = false;
-  auto do_program     = true;
-  auto do_verify      = true;
-
-  if (!(do_erase || do_blankcheck || do_program || do_verify)) {
+  if (m_firmware.is_empty()) {
+    append_to_log("Error: no or empty firmware loaded");
     return;
   }
 
-  if ((do_program || do_verify) && m_firmware_buffer.isEmpty()) {
-    append_to_log("Error: empty firmware data");
+  if (!m_firmware.has_required_sections()) {
+    append_to_log("Error: missing required section(s)");
     return;
   }
 
+  auto area_index = get_selected_area();
   ThreadMover tm(m_object_holder, 0);
+
   auto f_result = run_in_thread<void>([&] {
-      m_port_helper->open_port();
-      m_flash->ensure_clean_state();
-      m_flash->set_area_index(area_index);
+    qDebug() << "Firmware: open port";
+    m_port_helper->open_port();
 
-      if (do_erase)
-        m_flash->erase_firmware();
+    qDebug() << "Firmware: ensure clean state";
+    m_flash->ensure_clean_state();
 
-      if (do_blankcheck) {
-        auto result = m_flash->blankcheck_firmware();
-        if (!result)
-          return;
-      }
+    qDebug() << "Firmware: set area index" << area_index;
+    m_flash->set_area_index(area_index);
 
-      if (do_program)
-        m_flash->write_firmware(m_firmware_buffer);
+    for (auto sec: get_valid_sections()) {
+      if (!m_firmware.has_section(sec))
+        continue;
 
-      if (do_verify)
-        m_flash->verify_firmware(m_firmware_buffer);
+      qDebug() << "Firmware: working on section" << sec;
 
-    }, m_object_holder);
+      qDebug() << "Firmware: erase";
+
+      append_to_log_queued(QString("Erasing section %1").arg(sec));
+      m_flash->erase_subindex(sec);
+
+      auto content = m_firmware.get_section(sec);
+      qDebug() << "Firmware: write memory" << content.size();
+
+      append_to_log_queued(QString("Writing %1 bytes to section %2")
+                           .arg(content.size()).arg(sec));
+
+      m_flash->write_memory({0, 0, 0}, sec, gsl::as_span(content));
+
+      qDebug() << "Firmware: verify memory" << content.size();
+      append_to_log_queued(QString("Verify: reading %1 bytes from section %2")
+                           .arg(content.size()).arg(sec));
+
+      m_flash->verify_memory({0, 0, 0}, sec, gsl::as_span(content));
+
+      append_to_log_queued(QString("Section %1 done").arg(sec));
+
+      qDebug() << "Firmware: done with section" << sec;
+    }
+  }, m_object_holder);
 
   m_fw.setFuture(f_result);
 
@@ -265,97 +356,35 @@ void MVPGui::on_action_firmware_start_triggered()
 
   try {
     m_fw.waitForFinished();
-    // TODO: report success, DIP switch setting
+    auto ss = m_flash->get_last_status();
+    auto area = get_area(ss);
+    auto dips = get_dipswitch(ss);
+
+    append_to_log(
+          QString("Firmware from %1 written to area %2.")
+          .arg(ui->le_filename->text())
+          .arg(area));
+
+    append_to_log(
+          QString("Boot area on power cycle is %1 (dipswitches)")
+          .arg(dips));
+
   } catch (const std::exception &e) {
     append_to_log(QString(e.what()));
   }
-
-#if 0
-
-  auto port_variant = ui->combo_serial_ports->currentData();
-
-  if (!m_port->isOpen() && !port_variant.isValid()) {
-    append_to_log("Error: no serial connection");
-    return;
-  }
-
-  auto port_name  = port_variant.toString();
-  int area_index  = ui->combo_area->currentIndex();
-  bool do_erase   = ui->cb_erase->isChecked();
-  bool do_program = ui->cb_program->isChecked();
-  bool do_verify  = ui->cb_verify->isChecked();
-  bool do_blankcheck = ui->cb_blankcheck->isChecked();
-
-  if (!(do_erase || do_program || do_verify || do_blankcheck)) {
-    return;
-  }
-
-  if ((do_program || do_verify) && !m_flash->has_program_data()) {
-    append_to_log("Error: no firmware file loaded");
-    return;
-  }
-
-  {
-    ThreadMover tm(m_flash, 0);
-
-    m_fw.setFuture(QtConcurrent::run([&] {
-      try {
-        ThreadMover tm(m_flash, QThread::currentThread());
-
-        if (!m_port->isOpen()) {
-          m_port->setPortName(port_name);
-          if (!m_port->open(QIODevice::ReadWrite)) {
-            throw std::runtime_error("Error opening serial port");
-          }
-        }
-
-        m_flash->set_area_index(area_index);
-
-        if (do_erase) {
-          m_flash->erase_firmware();
-        }
-
-        if (do_blankcheck) {
-          m_flash->blankcheck_firmware();
-        }
-
-        if (do_program && do_verify) {
-          m_flash->program_and_verify();
-        } else if (do_program) {
-          //m_flash->program();
-          m_flash->program_verbose_test();
-        } else if (do_verify) {
-          //m_flash->verify();
-          m_flash->verify_verbose_test();
-        }
-      } catch (...) {
-        throw QtExceptionPtr(std::current_exception());
-      }
-    }));
-
-    m_progressbar->setVisible(true);
-    m_loop.exec();
-    m_progressbar->setVisible(false);
-
-    try {
-      m_fw.future().waitForFinished();
-    } catch (const std::exception &e) {
-      auto errstr(QString("Error: ") + e.what());
-      append_to_log(errstr);
-    }
-  }
-#endif
 }
 
 void MVPGui::handle_future_started()
 {
   ui->gb_input->setEnabled(false);
+  ui->pb_firmware_start->setEnabled(false);
 }
 
 void MVPGui::handle_future_finished()
 {
   m_loop.quit();
   ui->gb_input->setEnabled(true);
+  ui->pb_firmware_start->setEnabled(true);
   if (m_quit)
     close();
 }
@@ -393,6 +422,15 @@ void MVPGui::handle_current_port_name_changed(const QString &port_name)
 uchar MVPGui::get_selected_area() const
 {
   return static_cast<uchar>(ui->combo_area->currentIndex());
+}
+
+void MVPGui::append_to_log_queued(const QString &s)
+{
+  QMetaObject::invokeMethod(
+        this,
+        "append_to_log",
+        Qt::QueuedConnection,
+        Q_ARG(QString, s));
 }
 
 } // ns mvp
