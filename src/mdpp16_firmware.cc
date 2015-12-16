@@ -41,8 +41,7 @@ QList<uchar> MDPP16Firmware::get_present_section_numbers() const
 
 bool MDPP16Firmware::has_required_sections() const
 {
-  // TODO: keep section number knowledge in one place (flash.h?)
-  return has_section(8) && has_section(12);
+  return get_present_section_numbers().size() > 0;
 }
 
 std::runtime_error make_zip_error(const QString &msg, const QuaZip &zip)
