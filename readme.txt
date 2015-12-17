@@ -19,14 +19,13 @@ File names inside directory/zip
 Regexp for file names: "^d+.*\.bin$"
 with d+ containing the section index.
 
-Required sections: 
-    *  8 - descr. text
-    * 12 - firmware data
+Requirements: Input dir/zip must contain at least one valid section file.
 
 Example:
   firmware-testdir1/
         08-description.bin
         12-mdpp16_main.bin
+        9something-else.bin
 
   Same works with a flat zip archive (no root folder inside the zip allowed as
   of now).
