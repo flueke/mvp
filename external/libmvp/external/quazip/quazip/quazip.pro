@@ -39,9 +39,9 @@ unix:!symbian {
     target.path=$$PREFIX/lib/$${LIB_ARCH}
     INSTALLS += headers target
 
-        OBJECTS_DIR=.obj
-        MOC_DIR=.moc
-
+	OBJECTS_DIR=.obj
+	MOC_DIR=.moc
+	
 }
 
 win32 {

@@ -1,4 +1,8 @@
 #include "tests.h"
+<<<<<<< HEAD
+=======
+
+>>>>>>> df6c852b433bf9b9a0c9c392154008a69a1c9a11
 #include <memory>
 #include <QtTest/QtTest>
 
