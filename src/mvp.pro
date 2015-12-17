@@ -1,6 +1,7 @@
 TEMPLATE = app
 TARGET = ../mvp
-LIBS += -lquazip
+win32:LIBS += -lquazip
+unix:LIBS += -lquazip-qt5
 
 include($$PWD/../external/external.pri)
 
