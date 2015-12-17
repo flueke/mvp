@@ -51,6 +51,8 @@ win32 {
     INSTALLS += headers target
     # workaround for qdatetime.h macro bug
     DEFINES += NOMINMAX
+
+    LIBS += -lz
 }
 
 

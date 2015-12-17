@@ -10,6 +10,7 @@ namespace mvp
 {
 
 typedef QList<QSerialPortInfo> PortInfoList;
+typedef std::function<PortInfoList ()> PortInfoProvider;
 
 class PortHelper: public QObject
 {
@@ -21,19 +22,36 @@ class PortHelper: public QObject
   public:
     PortHelper(gsl::not_null<QSerialPort *> port, QObject *parent=nullptr);
 
+    PortHelper(gsl::not_null<QSerialPort *> port,
+      PortInfoProvider pip, QObject *parent=nullptr);
+
+    PortInfoProvider get_portinfo_provider() const
+    { return m_portinfo_provider; }
+
+    void set_portinfo_provider(PortInfoProvider provider)
+    { m_portinfo_provider = provider; }
+
     /** Returns the list of available serial ports. */
-    PortInfoList get_available_ports();
+    PortInfoList get_available_ports() const;
 
     /** Sets the port name the user wants to use. */
     void set_selected_port_name(const QString &name);
 
+    QString get_selected_port_name() const
+    { return m_selected_port_info.portName(); }
+
     /** Makes sure the currently selected port name still exists and is open.
-     * On error searches for a port with the same serial number as the old port. */
+     * On error searches for a port with the same serial number as the old port.
+     * If that fails an exception is raised. */
     void open_port();
+
+  public slots:
+    void refresh();
 
   private:
     QSerialPort *m_port;
     QSerialPortInfo m_selected_port_info;
+    PortInfoProvider m_portinfo_provider;
 };
 
 } // ns mvp

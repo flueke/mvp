@@ -1,9 +1,5 @@
 TEMPLATE = lib
-
-QT += core gui widgets
-
-CONFIG += debug_and_release c++11
-
-TARGET = libmvp
-
+TARGET = mvp
+win32:LIBS += -lquazip
+unix:LIBS += -lquazip-qt5
 include($$PWD/libmvp.pri)
