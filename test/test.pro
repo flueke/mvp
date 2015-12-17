@@ -6,7 +6,8 @@ CONFIG += testcase
 
 TARGET = libmvptest
 TEMPLATE = app
-LIBS += -lquazip
+win32:LIBS += -lquazip
+unix:LIBS += -lquazip-qt5
 
 HEADERS  += \
   $$PWD/tests.h \
