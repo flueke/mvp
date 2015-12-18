@@ -128,6 +128,9 @@ MDPP16Firmware from_firmware_file_generator(FirmwareContentsFileGenerator &gen)
     ret.set_section(section, fw_file_ptr->read_file_contents());
   }
 
+  if (ret.is_empty())
+    throw std::runtime_error("No section contents found in firmware");
+
   return ret;
 }
 
