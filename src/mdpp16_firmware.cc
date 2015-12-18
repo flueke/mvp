@@ -46,7 +46,7 @@ bool MDPP16Firmware::has_required_sections() const
 
 std::runtime_error make_zip_error(const QString &msg, const QuaZip &zip)
 {
-  auto m = QString("zip: %1 (error=%2)")
+  auto m = QString("archive: %1 (error=%2)")
     .arg(msg)
     .arg(zip.getZipError());
 
