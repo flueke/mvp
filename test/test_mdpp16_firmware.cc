@@ -134,12 +134,24 @@ void TestMDPP16Firmware::test_from_firmware_file_generator_simple()
   QCOMPARE(fw.get_section(0), bytearray_to_uchar_vec(data["00-otp.bin"]));
 }
 
+void TestMDPP16Firmware::test_from_firmware_file_generator_empty()
+{
+  QMap<QString, QByteArray> data = {};
+
+  FirmwareContentsFileGenerator gen =
+      FirmwareContentsFileGeneratorTestImpl(data);
+
+  QVERIFY_EXCEPTION_THROWN(
+        from_firmware_file_generator(gen),
+        std::runtime_error);
+}
+
 void TestMDPP16Firmware::test_from_firmware_file_generator_duplicate_section()
 {
   QMap<QString, QByteArray> data = {
     { "01-first.bin",   { "01-Lot's of content here" } },
     { "02-second.bin",  { "02-Lot's of content here" } },
-    { "1-again.bin",    { "1-Lot's of content here" } },
+    { "1-again",    { "1-Lot's of content here" } },
   };
 
   FirmwareContentsFileGenerator gen =
@@ -150,33 +162,13 @@ void TestMDPP16Firmware::test_from_firmware_file_generator_duplicate_section()
         std::runtime_error);
 }
 
-void TestMDPP16Firmware::test_from_firmware_file_generator_bin_extension()
-{
-  // duplicate section from filename but no .bin extension
-  QMap<QString, QByteArray> data = {
-    { "01-first.bin",   { "01-Lot's of content here" } },
-    { "02-second.bin",  { "02-Lot's of content here" } },
-    { "1-again.foo",    { "1-Lot's of content here" } },
-  };
-
-  FirmwareContentsFileGenerator gen =
-      FirmwareContentsFileGeneratorTestImpl(data);
-
-  auto fw = from_firmware_file_generator(gen);
-
-  QVERIFY(fw.has_section(1));
-  QVERIFY(fw.has_section(2));
-
-  QCOMPARE(fw.get_section(1), bytearray_to_uchar_vec(data["01-first.bin"]));
-  QCOMPARE(fw.get_section(2), bytearray_to_uchar_vec(data["02-second.bin"]));
-}
 
 void TestMDPP16Firmware::test_from_firmware_file_generator_section_size()
 {
   // exactly max size
   {
     QMap<QString, QByteArray> data = {
-      { "09sec9.bin",   QByteArray(get_section_max_size(9), 0xff) }
+      { "09sec9",   QByteArray(get_section_max_size(9), 0xff) }
     };
 
     FirmwareContentsFileGenerator gen =
@@ -194,7 +186,7 @@ void TestMDPP16Firmware::test_from_firmware_file_generator_section_size()
   // > max size
   {
     QMap<QString, QByteArray> data = {
-      { "09sec9.bin",   QByteArray(get_section_max_size(9)+1, 0xff) }
+      { "09sec9.foobar",   QByteArray(get_section_max_size(9)+1, 0xff) }
     };
 
     FirmwareContentsFileGenerator gen =
