@@ -53,7 +53,7 @@ std::runtime_error make_zip_error(const QString &msg, const QuaZip &zip)
   return std::runtime_error(m.toStdString());
 }
 
-static const QString section_filename_pattern = QStringLiteral("^(\\d+).*\\.bin$");
+static const QString section_filename_pattern = QStringLiteral("^(\\d+).*$");
 
 class DirFirmwareFile: public FirmwareContentsFile
 {
