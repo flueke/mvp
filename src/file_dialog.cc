@@ -6,6 +6,9 @@
 
 namespace mvp
 {
+/**
+ * QFileDialog specialization which allows to choose a directory or a file.
+ */
 FileDialog::FileDialog(QWidget *parent)
   : QFileDialog(parent)
 {
