@@ -26,6 +26,8 @@ namespace mvp
 
 static const int port_refresh_interval_ms = 1000;
 
+class FlashWidget;
+
 class MVPGui: public QMainWindow
 {
   Q_OBJECT
@@ -67,12 +69,11 @@ class MVPGui: public QMainWindow
     PortHelper *m_port_helper;
     QTimer *m_port_refresh_timer;
 
-    QList<QSerialPortInfo> m_serial_ports;
-
     QFutureWatcher<void> m_fw;
     QEventLoop m_loop;
     bool m_quit = false;
 
+    FlashWidget *m_flashwidget;
     QProgressBar *m_progressbar;
 
     MDPP16Firmware m_firmware;

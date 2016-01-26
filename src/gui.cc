@@ -3,6 +3,7 @@
 #include "util.h"
 #include "file_dialog.h"
 #include "mdpp16_firmware.h"
+#include "flash_widget.h"
 
 #include <QFileDialog>
 #include <QFileInfo>
@@ -31,12 +32,16 @@ MVPGui::MVPGui(QWidget *parent)
   , m_port(new QSerialPort(m_object_holder))
   , m_port_helper(new PortHelper(m_port, m_object_holder))
   , m_port_refresh_timer(new QTimer(m_object_holder))
+  , m_flashwidget(new FlashWidget)
   , m_progressbar(new QProgressBar)
 {
   m_object_holder->setObjectName("object holder");
 
   ui->setupUi(this);
-  ui->pb_open_file->setIcon(style()->standardIcon(QStyle::SP_DialogOpenButton));
+
+  auto layout = qobject_cast<QBoxLayout *>(centralWidget()->layout());
+  layout->insertWidget(0, m_flashwidget);
+
   ui->statusbar->addPermanentWidget(m_progressbar);
   ui->statusbar->setSizeGripEnabled(false);
   ui->logview->document()->setMaximumBlockCount(10000);
@@ -77,15 +82,17 @@ MVPGui::MVPGui(QWidget *parent)
   }, Qt::QueuedConnection);
 #endif
 
-  connect(m_port_helper, SIGNAL(available_ports_changed(const PortInfoList &)),
-    this, SLOT(handle_available_ports_changed(const PortInfoList &)), Qt::QueuedConnection);
-
-  connect(m_port_helper, SIGNAL(current_port_name_changed(const QString &)),
-    this, SLOT(handle_current_port_name_changed(const QString &)), Qt::QueuedConnection);
-
   connect(m_port_refresh_timer, SIGNAL(timeout()),
-    m_port_helper, SLOT(refresh()));
+    m_port_helper, SLOT(refresh()), Qt::QueuedConnection);
 
+  connect(m_port_helper, SIGNAL(available_ports_changed(const PortInfoList &)),
+      m_flashwidget, SLOT(set_available_ports(const PortInfoList &)), Qt::QueuedConnection);
+
+  connect(m_flashwidget, SIGNAL(serial_port_refresh_requested()),
+      m_port_helper, SLOT(refresh()), Qt::QueuedConnection);
+
+  connect(m_flashwidget, SIGNAL(serial_port_changed(const QString &)),
+      m_port_helper, SLOT(set_selected_port_name(const QString &)), Qt::QueuedConnection);
 
   auto ports = m_port_helper->get_available_ports();
 
@@ -200,10 +207,10 @@ void MVPGui::on_action_open_firmware_triggered()
 
   try {
     m_firmware = f_result.result();
-    ui->le_filename->setText(filename);
+    //ui->le_filename->setText(filename);
   } catch (const std::exception &e) {
     m_firmware.clear();
-    ui->le_filename->clear();
+    //ui->le_filename->clear();
     append_to_log(QString(e.what()));
   }
 
@@ -258,8 +265,8 @@ void MVPGui::on_action_open_firmware_triggered()
 
 void MVPGui::on_combo_serial_ports_currentIndexChanged(int index)
 {
-  auto name = ui->combo_serial_ports->itemData(index).toString();
-  m_port_helper->set_selected_port_name(name);
+  //auto name = ui->combo_serial_ports->itemData(index).toString();
+  //m_port_helper->set_selected_port_name(name);
 }
 
 void MVPGui::closeEvent(QCloseEvent *event)
@@ -362,7 +369,7 @@ void MVPGui::on_action_firmware_start_triggered()
 
     append_to_log(
           QString("Firmware from %1 written to area %2.")
-          .arg(ui->le_filename->text())
+          .arg(m_flashwidget->get_firmware_file())
           .arg(area));
 
     append_to_log(
@@ -376,21 +383,22 @@ void MVPGui::on_action_firmware_start_triggered()
 
 void MVPGui::handle_future_started()
 {
-  ui->gb_input->setEnabled(false);
-  ui->pb_firmware_start->setEnabled(false);
+  //ui->gb_input->setEnabled(false);
+  //ui->pb_firmware_start->setEnabled(false);
 }
 
 void MVPGui::handle_future_finished()
 {
   m_loop.quit();
-  ui->gb_input->setEnabled(true);
-  ui->pb_firmware_start->setEnabled(true);
+  //ui->gb_input->setEnabled(true);
+  //ui->pb_firmware_start->setEnabled(true);
   if (m_quit)
     close();
 }
 
 void MVPGui::handle_available_ports_changed(const PortInfoList &ports)
 {
+#if 0
   QSignalBlocker b(ui->combo_serial_ports);
 
   ui->combo_serial_ports->clear();
@@ -404,10 +412,12 @@ void MVPGui::handle_available_ports_changed(const PortInfoList &ports)
   ui->combo_serial_ports->addItem(QString());
 
   handle_current_port_name_changed(m_port_helper->get_selected_port_name());
+#endif
 }
 
 void MVPGui::handle_current_port_name_changed(const QString &port_name)
 {
+#if 0
 
   int idx = ui->combo_serial_ports->findData(port_name);
 
@@ -416,12 +426,15 @@ void MVPGui::handle_current_port_name_changed(const QString &port_name)
 
   QSignalBlocker b(ui->combo_serial_ports);
   ui->combo_serial_ports->setCurrentIndex(idx);
+#endif
 }
 
 
 uchar MVPGui::get_selected_area() const
 {
+#if 0
   return static_cast<uchar>(ui->combo_area->currentIndex());
+#endif
 }
 
 void MVPGui::append_to_log_queued(const QString &s)
