@@ -18,6 +18,8 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
+#else // RUN_GUI_TESTS
+    QCoreApplication app(argc, argv);
 #endif // RUN_GUI_TESTS
 
     for (auto obj: tests) {

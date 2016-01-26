@@ -46,14 +46,14 @@ bool MDPP16Firmware::has_required_sections() const
 
 std::runtime_error make_zip_error(const QString &msg, const QuaZip &zip)
 {
-  auto m = QString("zip: %1 (error=%2)")
+  auto m = QString("archive: %1 (error=%2)")
     .arg(msg)
     .arg(zip.getZipError());
 
   return std::runtime_error(m.toStdString());
 }
 
-static const QString section_filename_pattern = QStringLiteral("^(\\d+).*\\.bin$");
+static const QString section_filename_pattern = QStringLiteral("^(\\d+).*$");
 
 class DirFirmwareFile: public FirmwareContentsFile
 {
@@ -127,6 +127,9 @@ MDPP16Firmware from_firmware_file_generator(FirmwareContentsFileGenerator &gen)
     const auto section = static_cast<uchar>(match.captured(1).toUInt());
     ret.set_section(section, fw_file_ptr->read_file_contents());
   }
+
+  if (ret.is_empty())
+    throw std::runtime_error("No section contents found in firmware");
 
   return ret;
 }

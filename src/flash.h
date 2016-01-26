@@ -74,11 +74,11 @@ namespace mvp
     const uchar access_code[]     = { 0xCD, 0xAB };
     const uchar area_index_max    = 0x03;
 
-    const size_t address_max    = 0xffffff;
-    const size_t sector_size       = 64 * 1024;
-    const size_t subsector_size    =  4 * 1024;
-    const size_t firmware_sectors  = 51;
-    const size_t page_size      = 256;
+    const size_t address_max      = 0xffffff;
+    const size_t sector_size      = 64 * 1024;
+    const size_t subsector_size   =  4 * 1024;
+    const size_t firmware_sectors = 51;
+    const size_t page_size        = 256;
 
     // 51 sectors * 64 * 1024 = 3342336
     const size_t firmware_max_size = firmware_sectors * sector_size;
