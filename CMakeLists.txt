@@ -9,12 +9,12 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/gsl-lite/include")
 
-add_subdirectory(src)
 add_subdirectory(external)
+add_subdirectory(src)
 add_subdirectory(test)
 enable_testing()
 add_test(NAME libmvp-test COMMAND testrunner)
 
-add_dependencies(testrunner mvp_shared)
+add_dependencies(testrunner libmvp_shared)
 
 # vim:tw=0

@@ -31,8 +31,8 @@ set(LIBMVP_SOURCES
     util.cc
     )
 
-set(LIBMVP_SHARED_TARGET "mvp_shared")
-set(LIBMVP_STATIC_TARGET "mvp_static")
+set(LIBMVP_SHARED_TARGET "libmvp_shared")
+set(LIBMVP_STATIC_TARGET "libmvp_static")
 
 add_library(${LIBMVP_SHARED_TARGET} SHARED ${LIBMVP_SOURCES})
 add_library(${LIBMVP_STATIC_TARGET} STATIC ${LIBMVP_SOURCES})
