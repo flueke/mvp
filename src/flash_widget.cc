@@ -15,6 +15,9 @@ FlashWidget::FlashWidget(QWidget *parent)
 {
   ui->setupUi(this);
 
+  ui->pb_open_file->setIcon(style()->standardIcon(
+        QStyle::SP_DialogOpenButton));
+
   connect(ui->pb_refresh_serial_ports, SIGNAL(clicked()),
       this, SIGNAL(serial_port_refresh_requested()));
 
@@ -23,9 +26,6 @@ FlashWidget::FlashWidget(QWidget *parent)
 
   connect(ui->pb_start, SIGNAL(clicked()),
       this, SIGNAL(start_button_clicked()));
-
-  ui->pb_open_file->setIcon(style()->standardIcon(
-        QStyle::SP_DialogOpenButton));
 }
 
 bool FlashWidget::is_start_button_enabled() const
@@ -50,8 +50,7 @@ void FlashWidget::set_input_box_enabled(bool b)
 
 QString FlashWidget::get_serial_port() const
 {
-  auto index = ui->combo_serial_ports->currentIndex();
-  return ui->combo_serial_ports->itemData(index).toString();
+  return ui->combo_serial_ports->currentData().toString();
 }
 
 QString FlashWidget::get_firmware_file() const
@@ -73,16 +72,27 @@ void FlashWidget::set_available_ports(const PortInfoList &ports)
   ui->combo_serial_ports->clear();
 
   for (auto &info: ports) {
-    ui->combo_serial_ports->addItem(
-      info.portName() + " - " + info.serialNumber(),
-      info.portName());
+    if (!info.serialNumber().isEmpty()) {
+      ui->combo_serial_ports->addItem(
+        info.portName() + " - " + info.serialNumber(),
+        info.portName());
+    } else {
+      ui->combo_serial_ports->addItem(
+          info.portName(),
+          info.portName());
+    }
   }
 
-  ui->combo_serial_ports->addItem(QString());
+  int idx = 0;
 
   if (!current_port.isEmpty()) {
-    handle_current_port_name_changed(current_port);
+    idx = ui->combo_serial_ports->findData(current_port);
+    idx = idx >= 0 ? idx : 0;
   }
+
+  ui->combo_serial_ports->setCurrentIndex(idx);
+
+  emit serial_port_changed(get_serial_port());
 }
 
 void FlashWidget::set_firmware_file(const QString &filename)
@@ -113,21 +123,6 @@ void FlashWidget::on_pb_open_file_clicked()
   }
 
   set_firmware_file(filename);
-}
-
-void FlashWidget::handle_current_port_name_changed(const QString &port_name)
-{
-  qDebug() << "FlashWidget::handle_current_port_name_changed" << port_name;
-
-  int idx = ui->combo_serial_ports->findData(port_name);
-
-  if (idx < 0)
-    idx = ui->combo_serial_ports->count() - 1;
-
-  QSignalBlocker b(ui->combo_serial_ports);
-  ui->combo_serial_ports->setCurrentIndex(idx);
-
-  emit serial_port_changed(get_serial_port());
 }
 
 } // ns mvp

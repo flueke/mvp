@@ -40,8 +40,8 @@ PortInfoList PortHelper::get_available_ports() const
 void PortHelper::set_selected_port_name(const QString &name)
 {
   m_selected_port_info = QSerialPortInfo(name);
-  qDebug() << "set_selected_port_name" << name
-    << m_selected_port_info.serialNumber();
+  //qDebug() << "set_selected_port_name" << name
+  //  << m_selected_port_info.serialNumber();
 }
 
 void PortHelper::open_port()
