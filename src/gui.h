@@ -40,20 +40,15 @@ class MVPGui: public QMainWindow
     virtual void closeEvent(QCloseEvent *event) override;
 
   private slots:
-    // serial port handling
-    void on_action_refresh_serial_ports_triggered();
-    void on_combo_serial_ports_currentIndexChanged(int index);
-    void handle_available_ports_changed(const PortInfoList &);
-    void handle_current_port_name_changed(const QString &);
-
     // firmware
-    void on_action_open_firmware_triggered();
-    void on_action_firmware_start_triggered();
+    void _on_start_button_clicked();
+    void _on_firmware_file_changed(const QString &);
 
     // execution
     void handle_future_started();
     void handle_future_finished();
 
+    // misc
     void append_to_log(const QString &s);
 
   private:

@@ -41,8 +41,6 @@ class FlashWidget: public QWidget
     void on_pb_open_file_clicked();
 
   private:
-    void handle_current_port_name_changed(const QString &port_name);
-
     Ui::FlashWidget *ui;
 };
 
