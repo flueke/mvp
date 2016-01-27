@@ -1,5 +1,5 @@
-#ifndef __MDPP16_FIRMWARE_H__
-#define __MDPP16_FIRMWARE_H__
+#ifndef UUID_4beceb76_c0b3_4e40_8917_8ee9a4b262ac
+#define UUID_4beceb76_c0b3_4e40_8917_8ee9a4b262ac
 
 #include <QMap>
 #include <QVector>
@@ -44,4 +44,4 @@ Firmware from_zip(const QString &zip_filename);
 
 } // ns mvp
 
-#endif /* __MDPP16_FIRMWARE_H__ */
+#endif
