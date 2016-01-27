@@ -17,9 +17,10 @@ include_directories(
 
 set(LIBMVP_TEST_SOURCES
   test_file_dialog.cc
-  test_flash.cc
-  testmain.cc
   test_firmware.cc
+  test_flash.cc
+  test_instruction_file.cc
+  testmain.cc
   test_util.cc
   )
 

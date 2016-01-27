@@ -13,6 +13,7 @@ set(LIBMVP_SOURCES
     flash.cc
     flash_widget.cc
     firmware.cc
+    instruction_file.cc
     port_helper.cc
     util.cc
     )

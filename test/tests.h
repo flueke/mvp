@@ -36,4 +36,11 @@ class TestFirmware: public QObject
     void test_from_firmware_file_generator_section_size();
 };
 
+class TestInstructionFile: public QObject
+{
+  Q_OBJECT
+  private slots:
+    void test();
+};
+
 #endif
