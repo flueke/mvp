@@ -3,6 +3,8 @@
 
 #include <QFileDialog>
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -26,5 +28,6 @@ class FileDialog: public QFileDialog
 };
 
 } // ns mvp
+} // ns mesytec
 
 #endif

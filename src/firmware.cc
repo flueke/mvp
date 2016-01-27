@@ -4,6 +4,8 @@
 #include <quazip/quazip.h>
 #include <quazip/quazipfile.h>
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -224,3 +226,4 @@ Firmware from_dir(const QDir &dir)
 }
 
 } // ns mvp
+} // ns mesytec

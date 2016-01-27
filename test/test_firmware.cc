@@ -2,7 +2,7 @@
 #include "firmware.h"
 #include "flash.h"
 
-using namespace mvp;
+using namespace mesytec::mvp;
 
 void TestFirmware::test_basics()
 {

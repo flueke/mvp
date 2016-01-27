@@ -6,6 +6,8 @@
 #include <QSerialPortInfo>
 #include <gsl.h>
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -55,5 +57,6 @@ class PortHelper: public QObject
 };
 
 } // ns mvp
+} // ns mesytec
 
 #endif

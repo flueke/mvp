@@ -9,6 +9,8 @@ namespace Ui
   class FlashWidget;
 }
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -45,5 +47,6 @@ class FlashWidget: public QWidget
 };
 
 } // ns mvp
+} // ns mesytec
 
 #endif

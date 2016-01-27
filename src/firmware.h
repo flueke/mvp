@@ -6,6 +6,8 @@
 #include <QDir>
 #include <functional>
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -43,5 +45,6 @@ Firmware from_dir(const QDir &dir);
 Firmware from_zip(const QString &zip_filename);
 
 } // ns mvp
+} // ns mesytec
 
 #endif
