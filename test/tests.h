@@ -24,7 +24,7 @@ class TestFileDialog: public QObject
     void test();
 };
 
-class TestMDPP16Firmware: public QObject
+class TestFirmware: public QObject
 {
   Q_OBJECT
   private slots:

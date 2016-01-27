@@ -1,12 +1,12 @@
 #include "tests.h"
-#include "mdpp16_firmware.h"
+#include "firmware.h"
 #include "flash.h"
 
 using namespace mvp;
 
-void TestMDPP16Firmware::test_basics()
+void TestFirmware::test_basics()
 {
-  MDPP16Firmware fw;
+  Firmware fw;
 
   for (auto sec: {4,5,6,7,13}) {
     QVERIFY_EXCEPTION_THROWN(fw.has_section(sec), std::runtime_error);
@@ -34,7 +34,7 @@ void TestMDPP16Firmware::test_basics()
   }
 }
 
-void TestMDPP16Firmware::test_print_section_sizes()
+void TestFirmware::test_print_section_sizes()
 {
   QTextStream out(stdout);
 
@@ -115,7 +115,7 @@ class FirmwareContentsFileGeneratorTestImpl
     FirmwareContentsFileTestImpl m_fw_file;
 };
 
-void TestMDPP16Firmware::test_from_firmware_file_generator_simple()
+void TestFirmware::test_from_firmware_file_generator_simple()
 {
   QMap<QString, QByteArray> data = {
     { "00-otp.bin", { "Lot's of content here" } },
@@ -134,7 +134,7 @@ void TestMDPP16Firmware::test_from_firmware_file_generator_simple()
   QCOMPARE(fw.get_section(0), bytearray_to_uchar_vec(data["00-otp.bin"]));
 }
 
-void TestMDPP16Firmware::test_from_firmware_file_generator_empty()
+void TestFirmware::test_from_firmware_file_generator_empty()
 {
   QMap<QString, QByteArray> data = {};
 
@@ -146,7 +146,7 @@ void TestMDPP16Firmware::test_from_firmware_file_generator_empty()
         std::runtime_error);
 }
 
-void TestMDPP16Firmware::test_from_firmware_file_generator_duplicate_section()
+void TestFirmware::test_from_firmware_file_generator_duplicate_section()
 {
   QMap<QString, QByteArray> data = {
     { "01-first.bin",   { "01-Lot's of content here" } },
@@ -163,7 +163,7 @@ void TestMDPP16Firmware::test_from_firmware_file_generator_duplicate_section()
 }
 
 
-void TestMDPP16Firmware::test_from_firmware_file_generator_section_size()
+void TestFirmware::test_from_firmware_file_generator_section_size()
 {
   // exactly max size
   {

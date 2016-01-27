@@ -12,7 +12,7 @@ set(LIBMVP_SOURCES
     file_dialog.cc
     flash.cc
     flash_widget.cc
-    mdpp16_firmware.cc
+    firmware.cc
     port_helper.cc
     util.cc
     )

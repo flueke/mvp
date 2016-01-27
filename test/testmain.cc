@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     std::list<std::shared_ptr<QObject>> tests = {
       std::make_shared<TestQtExceptionPtr>(),
       std::make_shared<TestFlash>(),
-      std::make_shared<TestMDPP16Firmware>()
+      std::make_shared<TestFirmware>()
     };
 
 #ifdef RUN_GUI_TESTS

@@ -9,7 +9,7 @@
 namespace mvp
 {
 
-class MDPP16Firmware
+class Firmware
 {
   public:
     bool has_section(uchar section) const;
@@ -38,9 +38,9 @@ class FirmwareContentsFile
 
 typedef std::function<FirmwareContentsFile * (void)> FirmwareContentsFileGenerator;
 
-MDPP16Firmware from_firmware_file_generator(FirmwareContentsFileGenerator &gen);
-MDPP16Firmware from_dir(const QDir &dir);
-MDPP16Firmware from_zip(const QString &zip_filename);
+Firmware from_firmware_file_generator(FirmwareContentsFileGenerator &gen);
+Firmware from_dir(const QDir &dir);
+Firmware from_zip(const QString &zip_filename);
 
 } // ns mvp
 
