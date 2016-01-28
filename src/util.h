@@ -16,6 +16,8 @@
 
 class QThread;
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -137,6 +139,7 @@ QVector<T> span_to_qvector(const gsl::span<T> &span_)
 }
 
 } // ns mvp
+} // ns mesytec
 
 template <typename U>
 QString format_bytes(const U &bytes)

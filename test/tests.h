@@ -24,7 +24,7 @@ class TestFileDialog: public QObject
     void test();
 };
 
-class TestMDPP16Firmware: public QObject
+class TestFirmware: public QObject
 {
   Q_OBJECT
   private slots:
@@ -34,6 +34,13 @@ class TestMDPP16Firmware: public QObject
     void test_from_firmware_file_generator_empty();
     void test_from_firmware_file_generator_duplicate_section();
     void test_from_firmware_file_generator_section_size();
+};
+
+class TestInstructionFile: public QObject
+{
+  Q_OBJECT
+  private slots:
+    void test();
 };
 
 #endif

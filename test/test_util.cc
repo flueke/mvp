@@ -2,7 +2,7 @@
 #include "util.h"
 #include <QtConcurrent>
 
-using mvp::QtExceptionPtr;
+using mesytec::mvp::QtExceptionPtr;
 
 void TestQtExceptionPtr::test()
 {

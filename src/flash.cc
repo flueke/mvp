@@ -1,5 +1,7 @@
 #include "flash.h"
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -441,3 +443,4 @@ size_t pad_to_page_size(QVector<uchar> &data)
 }
 
 } // ns mvp
+} // ns mesytec

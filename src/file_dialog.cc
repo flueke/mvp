@@ -4,6 +4,8 @@
 #include <QDialogButtonBox>
 #include <QPushButton>
 
+namespace mesytec
+{
 namespace mvp
 {
 /**
@@ -53,3 +55,4 @@ void FileDialog::handle_open_button_clicked()
 }
 
 } // ns mvp
+} // ns mesytec
