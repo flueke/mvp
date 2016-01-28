@@ -7,6 +7,8 @@
 #include <gsl.h>
 #include "util.h"
 
+namespace mesytec
+{
 namespace mvp
 {
   namespace opcodes
@@ -412,5 +414,6 @@ namespace mvp
   size_t pad_to_page_size(QVector<uchar> &data);
 
 } // ns mvp
+} // ns mesytec
 
 #endif

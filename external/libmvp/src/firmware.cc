@@ -1,45 +1,47 @@
-#include "mdpp16_firmware.h"
+#include "firmware.h"
 #include "flash.h"
 #include <QRegularExpression>
 #include <quazip/quazip.h>
 #include <quazip/quazipfile.h>
 
+namespace mesytec
+{
 namespace mvp
 {
 
-bool MDPP16Firmware::has_section(uchar section) const
+bool Firmware::has_section(uchar section) const
 {
   if (!is_valid_section(section))
-    throw std::runtime_error("MDPP16Firmware::has_section(): invalid section given");
+    throw std::runtime_error("Firmware::has_section(): invalid section given");
 
   return m_section_map.contains(section);
 }
 
-QVector<uchar> MDPP16Firmware::get_section(uchar section) const
+QVector<uchar> Firmware::get_section(uchar section) const
 {
   if (!has_section(section))
-    throw std::runtime_error("MDPP16Firmware::get_section(): section not set");
+    throw std::runtime_error("Firmware::get_section(): section not set");
 
   return m_section_map.value(section);
 }
 
-void MDPP16Firmware::set_section(uchar section, const QVector<uchar> &data)
+void Firmware::set_section(uchar section, const QVector<uchar> &data)
 {
   if (has_section(section))
-    throw std::runtime_error("MDPP16Firmware::set_section(): section already set");
+    throw std::runtime_error("Firmware::set_section(): section already set");
 
   if (static_cast<size_t>(data.size()) > get_section_max_size(section))
-    throw std::runtime_error("MDPP16Firmware::set_section(): section max size exceeded");
+    throw std::runtime_error("Firmware::set_section(): section max size exceeded");
 
   m_section_map.insert(section, data);
 }
 
-QList<uchar> MDPP16Firmware::get_present_section_numbers() const
+QList<uchar> Firmware::get_present_section_numbers() const
 {
   return m_section_map.keys();
 }
 
-bool MDPP16Firmware::has_required_sections() const
+bool Firmware::has_required_sections() const
 {
   return get_present_section_numbers().size() > 0;
 }
@@ -113,9 +115,9 @@ class ZipFirmwareFile: public FirmwareContentsFile
     QuaZip *m_zip;
 };
 
-MDPP16Firmware from_firmware_file_generator(FirmwareContentsFileGenerator &gen)
+Firmware from_firmware_file_generator(FirmwareContentsFileGenerator &gen)
 {
-  MDPP16Firmware ret;
+  Firmware ret;
   QRegularExpression re(section_filename_pattern);
 
   while (auto fw_file_ptr = gen()) {
@@ -205,7 +207,7 @@ class DirFirmwareFileGenerator
     std::shared_ptr<DirFirmwareFile> m_dir_fw_file;
 };
 
-MDPP16Firmware from_zip(const QString &zip_filename)
+Firmware from_zip(const QString &zip_filename)
 {
   QuaZip zip(zip_filename);
 
@@ -217,10 +219,11 @@ MDPP16Firmware from_zip(const QString &zip_filename)
   return from_firmware_file_generator(gen);
 }
 
-MDPP16Firmware from_dir(const QDir &dir)
+Firmware from_dir(const QDir &dir)
 {
   FirmwareContentsFileGenerator gen = DirFirmwareFileGenerator(dir);
   return from_firmware_file_generator(gen);
 }
 
 } // ns mvp
+} // ns mesytec

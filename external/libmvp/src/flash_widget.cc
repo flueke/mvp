@@ -5,7 +5,8 @@
 #include <QStandardPaths>
 #include <QtDebug>
 
-
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -126,3 +127,4 @@ void FlashWidget::on_pb_open_file_clicked()
 }
 
 } // ns mvp
+} // ns mesytec

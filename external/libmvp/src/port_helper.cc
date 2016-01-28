@@ -2,6 +2,8 @@
 #include "util.h"
 #include <QSerialPort>
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -101,3 +103,4 @@ void PortHelper::refresh()
 }
 
 } // ns mvp
+} // ns mesytec

@@ -1,7 +1,7 @@
 #include "tests.h"
 #include "flash.h"
 
-using namespace mvp;
+using namespace mesytec::mvp;
 
 template<typename T>
 void test_constructors()
