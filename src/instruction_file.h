@@ -15,6 +15,8 @@ struct Instruction
   Type type;
   Address address;
   data_type data;
+
+  QString to_string() const;
 };
 
 class InstructionFileParseError: public std::runtime_error
