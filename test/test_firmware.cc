@@ -71,7 +71,7 @@ class FirmwareContentsFileTestImpl: public FirmwareContentsFile
     QString get_filename() const
     { return m_filename; }
 
-    QVector<uchar> read_file_contents()
+    QVector<uchar> get_file_contents()
     { return m_contents; }
 
     void set(const QString &filename, const QByteArray &contents)

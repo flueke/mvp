@@ -6,6 +6,10 @@ find_package(Qt5Gui REQUIRED)
 find_package(Qt5SerialPort REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
+find_package(Boost 1.56 REQUIRED)
+
+include_directories(${Boost_INCLUDE_DIRS})
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
 set(LIBMVP_SOURCES

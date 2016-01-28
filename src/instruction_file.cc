@@ -34,7 +34,7 @@ Address parse_address(int line_number, QString line)
   return Address(addr);
 }
 
-typedef std::pair<Instruction::Type, Instruction::data_type> TypeDataPair;
+typedef std::pair<Instruction::Type, Instruction::DataType> TypeDataPair;
 
 TypeDataPair parse_data(int line_number, QString line)
 {

@@ -9,6 +9,7 @@ namespace mesytec
 namespace mvp
 {
 
+#if 0
 bool Firmware::has_section(uchar section) const
 {
   if (!is_valid_section(section))
@@ -46,6 +47,8 @@ bool Firmware::has_required_sections() const
   return get_present_section_numbers().size() > 0;
 }
 
+#endif
+
 std::runtime_error make_zip_error(const QString &msg, const QuaZip &zip)
 {
   auto m = QString("archive: %1 (error=%2)")
@@ -54,8 +57,6 @@ std::runtime_error make_zip_error(const QString &msg, const QuaZip &zip)
 
   return std::runtime_error(m.toStdString());
 }
-
-static const QString section_filename_pattern = QStringLiteral("^(\\d+).*$");
 
 class DirFirmwareFile: public FirmwareContentsFile
 {
@@ -67,7 +68,7 @@ class DirFirmwareFile: public FirmwareContentsFile
     QString get_filename() const override
     { return m_fi.fileName();}
 
-    QVector<uchar> read_file_contents() override
+    QVector<uchar> get_file_contents() override
     {
       QFile file(m_fi.filePath());
 
@@ -96,7 +97,7 @@ class ZipFirmwareFile: public FirmwareContentsFile
     QString get_filename() const override
     { return m_zip->getCurrentFileName(); }
 
-    QVector<uchar> read_file_contents() override
+    QVector<uchar> get_file_contents() override
     {
       QuaZipFile file(m_zip);
 
@@ -115,25 +116,44 @@ class ZipFirmwareFile: public FirmwareContentsFile
     QuaZip *m_zip;
 };
 
-Firmware from_firmware_file_generator(FirmwareContentsFileGenerator &gen)
+static const QString section_filename_pattern = QStringLiteral("^(\\d+).*$");
+
+FirmwareArchive from_firmware_file_generator(FirmwareContentsFileGenerator &gen,
+    const QString &archive_filename)
 {
+  FirmwareArchive ret(archive_filename);
+
+  while (auto fw_file = gen()) {
+    auto fn = fw_file->get_filename();
+    QFileInfo fi(fn);
+    auto ext = fi.suffix();
+
+    if (ext == "key") {
+      ret.add_part(std::make_shared<KeyFirmwarePart>(
+            fn, fw_file->get_file_contents()));
+    }
+  }
+
+  return ret;
+#if 0
   Firmware ret;
   QRegularExpression re(section_filename_pattern);
 
-  while (auto fw_file_ptr = gen()) {
-    auto match = re.match(fw_file_ptr->get_filename());
+  while (auto fw_file = gen()) {
+    auto match = re.match(fw_file->get_filename());
 
     if (!match.hasMatch())
       continue;
 
     const auto section = static_cast<uchar>(match.captured(1).toUInt());
-    ret.set_section(section, fw_file_ptr->read_file_contents());
+    ret.set_section(section, fw_file->get_file_contents());
   }
 
   if (ret.is_empty())
     throw std::runtime_error("No section contents found in firmware");
 
   return ret;
+#endif
 }
 
 class ZipFirmwareFileGenerator
@@ -173,7 +193,6 @@ class ZipFirmwareFileGenerator
     bool m_first_file = true;
 };
 
-
 class DirFirmwareFileGenerator
 {
   public:
@@ -207,7 +226,7 @@ class DirFirmwareFileGenerator
     std::shared_ptr<DirFirmwareFile> m_dir_fw_file;
 };
 
-Firmware from_zip(const QString &zip_filename)
+FirmwareArchive from_zip(const QString &zip_filename)
 {
   QuaZip zip(zip_filename);
 
@@ -216,13 +235,13 @@ Firmware from_zip(const QString &zip_filename)
 
   FirmwareContentsFileGenerator gen = ZipFirmwareFileGenerator(&zip);
 
-  return from_firmware_file_generator(gen);
+  return from_firmware_file_generator(gen, zip_filename);
 }
 
-Firmware from_dir(const QDir &dir)
+FirmwareArchive from_dir(const QDir &dir)
 {
   FirmwareContentsFileGenerator gen = DirFirmwareFileGenerator(dir);
-  return from_firmware_file_generator(gen);
+  return from_firmware_file_generator(gen, dir.path());
 }
 
 } // ns mvp
