@@ -1,15 +1,17 @@
-#ifndef __MDPP16_FIRMWARE_H__
-#define __MDPP16_FIRMWARE_H__
+#ifndef UUID_4beceb76_c0b3_4e40_8917_8ee9a4b262ac
+#define UUID_4beceb76_c0b3_4e40_8917_8ee9a4b262ac
 
 #include <QMap>
 #include <QVector>
 #include <QDir>
 #include <functional>
 
+namespace mesytec
+{
 namespace mvp
 {
 
-class MDPP16Firmware
+class Firmware
 {
   public:
     bool has_section(uchar section) const;
@@ -38,10 +40,11 @@ class FirmwareContentsFile
 
 typedef std::function<FirmwareContentsFile * (void)> FirmwareContentsFileGenerator;
 
-MDPP16Firmware from_firmware_file_generator(FirmwareContentsFileGenerator &gen);
-MDPP16Firmware from_dir(const QDir &dir);
-MDPP16Firmware from_zip(const QString &zip_filename);
+Firmware from_firmware_file_generator(FirmwareContentsFileGenerator &gen);
+Firmware from_dir(const QDir &dir);
+Firmware from_zip(const QString &zip_filename);
 
 } // ns mvp
+} // ns mesytec
 
-#endif /* __MDPP16_FIRMWARE_H__ */
+#endif

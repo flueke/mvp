@@ -8,52 +8,39 @@ find_package(Qt5Widgets REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
-#message("Qt stuff: ${Qt5Widgets_VERSION}")
-#message("Qt stuff: ${Qt5Widgets_LIBRARIES}")
-#message("Qt stuff: ${Qt5Widgets_INCLUDE_DIRS}")
-#message("Qt stuff: ${Qt5Widgets_DEFINITIONS}")
-#message("Qt stuff: ${Qt5Widgets_COMPILE_DEFINITIONS}")
-#message("Qt stuff: ${Qt5Widgets_FOUND}")
-#message("Qt stuff: ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-
-include_directories(
-    ${Qt5Concurrent_INCLUDE_DIRS}
-    ${Qt5Gui_INCLUDE_DIRS}
-    ${Qt5SerialPort_INCLUDE_DIRS}
-    ${Qt5Widgets_INCLUDE_DIRS}
-    )
-
 set(LIBMVP_SOURCES
     file_dialog.cc
     flash.cc
-    mdpp16_firmware.cc
+    flash_widget.cc
+    firmware.cc
+    instruction_file.cc
     port_helper.cc
     util.cc
     )
 
+qt5_wrap_ui(UIC_OUT flash_widget.ui)
+
 set(LIBMVP_SHARED_TARGET "libmvp_shared")
 set(LIBMVP_STATIC_TARGET "libmvp_static")
 
-add_library(${LIBMVP_SHARED_TARGET} SHARED ${LIBMVP_SOURCES})
-add_library(${LIBMVP_STATIC_TARGET} STATIC ${LIBMVP_SOURCES})
+add_library(${LIBMVP_SHARED_TARGET} SHARED ${LIBMVP_SOURCES} ${UIC_OUT})
+add_library(${LIBMVP_STATIC_TARGET} STATIC ${LIBMVP_SOURCES} ${UIC_OUT})
 
 set_target_properties(${LIBMVP_SHARED_TARGET} PROPERTIES OUTPUT_NAME "mvp")
 set_target_properties(${LIBMVP_STATIC_TARGET} PROPERTIES OUTPUT_NAME "mvp")
 
-target_link_libraries(
-    ${LIBMVP_SHARED_TARGET}
-    Qt5::Concurrent
-    Qt5::Gui
-    Qt5::SerialPort
-    Qt5::Widgets
-    )
+qt5_use_modules(${LIBMVP_SHARED_TARGET}
+  Concurrent
+  Gui
+  SerialPort
+  Widgets
+  )
 
-target_link_libraries(
-    ${LIBMVP_STATIC_TARGET}
-    Qt5::Concurrent
-    Qt5::Gui
-    Qt5::SerialPort
-    Qt5::Widgets
-    )
+qt5_use_modules(${LIBMVP_STATIC_TARGET}
+  Concurrent
+  Gui
+  SerialPort
+  Widgets
+  )
 
 # vim:tw=0

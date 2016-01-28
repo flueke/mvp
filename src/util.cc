@@ -1,6 +1,8 @@
 #include "util.h"
 #include <QSerialPort>
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -18,3 +20,4 @@ ComError make_com_error(gsl::not_null<QIODevice *> device,
 }
 
 } // ns mvp
+} // ns mesytec

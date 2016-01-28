@@ -13,18 +13,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
 include_directories(
   ${libmvp_SOURCE_DIR}/src
-  ${Qt5Concurrent_INCLUDE_DIRS}
-  ${Qt5Gui_INCLUDE_DIRS}
-  ${Qt5SerialPort_INCLUDE_DIRS}
-  ${Qt5Test_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
   )
 
 set(LIBMVP_TEST_SOURCES
   test_file_dialog.cc
+  test_firmware.cc
   test_flash.cc
+  test_instruction_file.cc
   testmain.cc
-  test_mdpp16_firmware.cc
   test_util.cc
   )
 
@@ -36,14 +32,16 @@ link_directories(${libmvp_BINARY_DIR}/src)
 
 add_executable(${LIBMVP_TEST_TARGET} EXCLUDE_FROM_ALL ${LIBMVP_TEST_SOURCES} ${MOC_OUT})
 
-target_link_libraries(
-  ${LIBMVP_TEST_TARGET}
+qt5_use_modules(${LIBMVP_TEST_TARGET}
+  Concurrent
+  Gui
+  SerialPort
+  Test
+  Widgets
+  )
+
+target_link_libraries(${LIBMVP_TEST_TARGET}
   mvp
-  Qt5::Concurrent
-  Qt5::Gui
-  Qt5::SerialPort
-  Qt5::Widgets
-  Qt5::Test
   ${QUAZIP_QT5}
   )
 
