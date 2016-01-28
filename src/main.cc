@@ -2,6 +2,8 @@
 #include <QApplication>
 #include <QLocale>
 
+using namespace mesytec;
+
 int main(int argc, char *argv[])
 {
   using mvp::PortInfoList;

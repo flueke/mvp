@@ -2,7 +2,6 @@
 #include "ui_gui.h"
 #include "util.h"
 #include "file_dialog.h"
-#include "mdpp16_firmware.h"
 #include "flash_widget.h"
 
 #include <QFileDialog>
@@ -21,6 +20,8 @@
 
 #include <utility>
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -210,7 +211,7 @@ void MVPGui::_on_firmware_file_changed(const QString &filename)
 {
   ThreadMover tm(m_object_holder, 0);
 
-  auto f_result = run_in_thread<MDPP16Firmware>([&] {
+  auto f_result = run_in_thread<Firmware>([&] {
     QFileInfo fi(filename);
 
     auto firmware = fi.isDir()
@@ -290,3 +291,4 @@ void MVPGui::append_to_log_queued(const QString &s)
 }
 
 } // ns mvp
+} // ns mesytec

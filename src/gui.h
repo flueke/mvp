@@ -8,7 +8,7 @@
 #include <QSerialPortInfo>
 #include "flash.h"
 #include "port_helper.h"
-#include "mdpp16_firmware.h"
+#include "firmware.h"
 
 class QCloseEvent;
 class QLabel;
@@ -21,6 +21,8 @@ namespace Ui
   class MVPGui;
 }
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -71,9 +73,10 @@ class MVPGui: public QMainWindow
     FlashWidget *m_flashwidget;
     QProgressBar *m_progressbar;
 
-    MDPP16Firmware m_firmware;
+    Firmware m_firmware;
 };
 
 } // ns mvp
+} // ns mesytec
 
 #endif
