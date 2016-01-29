@@ -32,8 +32,7 @@ class TestFirmware: public QObject
     void test_print_section_sizes();
     void test_from_firmware_file_generator_simple();
     void test_from_firmware_file_generator_empty();
-    void test_from_firmware_file_generator_duplicate_section();
-    void test_from_firmware_file_generator_section_size();
+    void test_filename_patterns();
 };
 
 class TestInstructionFile: public QObject

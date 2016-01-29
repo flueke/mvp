@@ -128,7 +128,7 @@ namespace mvp
     public:
       Address() = default;
 
-      Address(uchar a0, uchar a1, uchar a2): _data({a0, a1, a2}) {}
+      Address(uchar a0, uchar a1, uchar a2): _data({{a0, a1, a2}}) {}
 
       Address(const Address &o): _data(o._data) {}
 
@@ -145,11 +145,11 @@ namespace mvp
         if (a > constants::address_max)
           throw std::out_of_range("address range exceeded");
 
-        _data = {
+        _data = {{
           gsl::narrow_cast<uchar>((a & 0x0000ff)),
           gsl::narrow_cast<uchar>((a & 0x00ff00) >> 8),
           gsl::narrow_cast<uchar>((a & 0xff0000) >> 16)
-        };
+        }};
       }
 
       uchar operator[](size_t idx) const

@@ -20,25 +20,46 @@ class FirmwarePart
 
     virtual ~FirmwarePart() {};
 
-    QString get_filename() const;
-    void set_filename(const QString &filename);
+    QString get_filename() const
+    { return m_filename; }
 
-    boost::optional<uchar> get_area() const;
-    void set_area(const boost::optional<uchar> &area);
-    bool has_area() const;
+    void set_filename(const QString &filename)
+    { m_filename = filename; }
 
-    boost::optional<uchar> get_section() const;
-    void set_section(const boost::optional<uchar> &section);
-    bool has_section() const;
+    boost::optional<uchar> get_area() const
+    { return m_area; }
 
-    ContentsType get_contents();
-    void set_contents(const ContentsType &contents);
+    void set_area(const boost::optional<uchar> &area)
+    { m_area = area; }
+
+    bool has_area() const
+    { return bool(m_area); }
+
+    boost::optional<uchar> get_section() const
+    { return m_section; }
+
+    void set_section(const boost::optional<uchar> &section)
+    { m_section = section; }
+
+    bool has_section() const
+    { return bool(m_section); }
+
+    ContentsType get_contents() const
+    { return m_contents; }
+
+    void set_contents(const ContentsType &contents)
+    { m_contents = contents; }
 
   protected:
     FirmwarePart(const QString &filename,
         const boost::optional<uchar> &area = boost::none,
         const boost::optional<uchar> &section = boost::none,
-        const ContentsType &contents = ContentsType());
+        const ContentsType &contents = ContentsType())
+      : m_filename(filename)
+      , m_area(area)
+      , m_section(section)
+      , m_contents(contents)
+  {}
 
   private:
     QString m_filename;
@@ -79,11 +100,11 @@ class KeyFirmwarePart: public InstructionFirmwarePart
       : InstructionFirmwarePart(filename, boost::none, boost::none, contents)
     {}
 
+#if 0
     /* These methods extract information from the filename. The same
      * information should be inside the files instruction list aswell.
      * TODO: Need something to check the consistency of filename and
      * instruction list. */
-#if 0
     QString get_device_name() const;
     QVector<uchar> get_serial_number() const;
     QVector<uchar> get_software_number() const;
@@ -99,11 +120,24 @@ typedef QList<FirmwarePartPtr> FirmwarePartList;
 class FirmwareArchive
 {
   public:
-    FirmwareArchive(const QString &filename);
+    FirmwareArchive(const QString &filename)
+      : m_filename(filename)
+    {}
 
-    QString get_filename() const;
-    FirmwarePartList get_parts() const;
-    void add_part(const FirmwarePartPtr &part);
+    QString get_filename() const
+    { return m_filename; }
+
+    FirmwarePartList get_parts() const
+    { return m_parts; }
+
+    FirmwarePartPtr get_part(int idx) const
+    { return m_parts.value(idx); }
+
+    void add_part(const FirmwarePartPtr &part)
+    { m_parts.push_back(part); }
+
+    int size() const
+    { return m_parts.size(); }
 
   private:
     QString m_filename;
