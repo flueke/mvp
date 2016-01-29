@@ -97,6 +97,8 @@ namespace mvp
       { 12, firmware_max_size }
     };
 
+    const QSet<uchar> non_area_specific_sections = {{0, 1, 2, 3}};
+
     const int default_timeout_ms =  3000;
     const int erase_timeout_ms   = 60000;
     const int data_timeout_ms    = 10000;
@@ -121,6 +123,19 @@ namespace mvp
       throw std::runtime_error("invalid section index");
 
     return constants::section_max_sizes.value(section);
+  }
+
+  inline bool is_area_specific_section(uchar section)
+  {
+    if (!is_valid_section(section))
+      throw std::runtime_error("invalid section index");
+
+    return constants::non_area_specific_sections.contains(section);
+  }
+
+  inline bool is_non_area_specific_section(uchar section)
+  {
+    return !is_area_specific_section(section);
   }
 
   class Address
@@ -217,10 +232,10 @@ namespace mvp
 
   QDebug operator<<(QDebug dbg, const Address &a);
 
-  class InstructionError: public std::runtime_error
+  class FlashInstructionError: public std::runtime_error
   {
     public:
-      InstructionError(const gsl::span<uchar> &instruction, const gsl::span<uchar> &response,
+      FlashInstructionError(const gsl::span<uchar> &instruction, const gsl::span<uchar> &response,
           const QString &message = QString("instruction error"))
         : std::runtime_error(message.toStdString())
         , m_instruction(span_to_qvector(instruction))

@@ -45,4 +45,11 @@ class TestInstructionFile: public QObject
     void test_invalid_structure();
 };
 
+class TestInstructionInterpreter: public QObject
+{
+  Q_OBJECT
+  private slots:
+    void test_print();
+};
+
 #endif
