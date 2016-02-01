@@ -24,12 +24,13 @@ set(LIBMVP_SOURCES
     )
 
 qt5_wrap_ui(UIC_OUT flash_widget.ui)
+qt5_add_resources(RC_OUT resources.qrc)
 
 set(LIBMVP_SHARED_TARGET "libmvp_shared")
 set(LIBMVP_STATIC_TARGET "libmvp_static")
 
-add_library(${LIBMVP_SHARED_TARGET} SHARED ${LIBMVP_SOURCES} ${UIC_OUT})
-add_library(${LIBMVP_STATIC_TARGET} STATIC ${LIBMVP_SOURCES} ${UIC_OUT})
+add_library(${LIBMVP_SHARED_TARGET} SHARED ${LIBMVP_SOURCES} ${UIC_OUT} ${RC_OUT})
+add_library(${LIBMVP_STATIC_TARGET} STATIC ${LIBMVP_SOURCES} ${UIC_OUT} ${RC_OUT})
 
 set_target_properties(${LIBMVP_SHARED_TARGET} PROPERTIES OUTPUT_NAME "mvp")
 set_target_properties(${LIBMVP_STATIC_TARGET} PROPERTIES OUTPUT_NAME "mvp")
