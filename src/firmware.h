@@ -120,7 +120,7 @@ typedef QList<FirmwarePartPtr> FirmwarePartList;
 class FirmwareArchive
 {
   public:
-    FirmwareArchive(const QString &filename)
+    FirmwareArchive(const QString &filename = QString())
       : m_filename(filename)
     {}
 
