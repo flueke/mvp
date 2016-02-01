@@ -7,6 +7,8 @@
 #include <gsl.h>
 #include "util.h"
 
+namespace mesytec
+{
 namespace mvp
 {
   namespace opcodes
@@ -74,11 +76,11 @@ namespace mvp
     const uchar access_code[]     = { 0xCD, 0xAB };
     const uchar area_index_max    = 0x03;
 
-    const size_t address_max    = 0xffffff;
-    const size_t sector_size       = 64 * 1024;
-    const size_t subsector_size    =  4 * 1024;
-    const size_t firmware_sectors  = 51;
-    const size_t page_size      = 256;
+    const size_t address_max      = 0xffffff;
+    const size_t sector_size      = 64 * 1024;
+    const size_t subsector_size   =  4 * 1024;
+    const size_t firmware_sectors = 51;
+    const size_t page_size        = 256;
 
     // 51 sectors * 64 * 1024 = 3342336
     const size_t firmware_max_size = firmware_sectors * sector_size;
@@ -94,6 +96,8 @@ namespace mvp
       { 11, sector_size * 6 },
       { 12, firmware_max_size }
     };
+
+    const QSet<uchar> non_area_specific_sections = {{0, 1, 2, 3}};
 
     const int default_timeout_ms =  3000;
     const int erase_timeout_ms   = 60000;
@@ -121,12 +125,25 @@ namespace mvp
     return constants::section_max_sizes.value(section);
   }
 
+  inline bool is_area_specific_section(uchar section)
+  {
+    if (!is_valid_section(section))
+      throw std::runtime_error("invalid section index");
+
+    return constants::non_area_specific_sections.contains(section);
+  }
+
+  inline bool is_non_area_specific_section(uchar section)
+  {
+    return !is_area_specific_section(section);
+  }
+
   class Address
   {
     public:
       Address() = default;
 
-      Address(uchar a0, uchar a1, uchar a2): _data({a0, a1, a2}) {}
+      Address(uchar a0, uchar a1, uchar a2): _data({{a0, a1, a2}}) {}
 
       Address(const Address &o): _data(o._data) {}
 
@@ -143,11 +160,11 @@ namespace mvp
         if (a > constants::address_max)
           throw std::out_of_range("address range exceeded");
 
-        _data = {
+        _data = {{
           gsl::narrow_cast<uchar>((a & 0x0000ff)),
           gsl::narrow_cast<uchar>((a & 0x00ff00) >> 8),
           gsl::narrow_cast<uchar>((a & 0xff0000) >> 16)
-        };
+        }};
       }
 
       uchar operator[](size_t idx) const
@@ -209,16 +226,23 @@ namespace mvp
         return *this;
       }
 
+      Address operator+(int n)
+      {
+        Address a(*this);
+        a += n;
+        return a;
+      }
+
     private:
       std::array<uchar, 3> _data = {{0, 0, 0}};
   };
 
   QDebug operator<<(QDebug dbg, const Address &a);
 
-  class InstructionError: public std::runtime_error
+  class FlashInstructionError: public std::runtime_error
   {
     public:
-      InstructionError(const gsl::span<uchar> &instruction, const gsl::span<uchar> &response,
+      FlashInstructionError(const gsl::span<uchar> &instruction, const gsl::span<uchar> &response,
           const QString &message = QString("instruction error"))
         : std::runtime_error(message.toStdString())
         , m_instruction(span_to_qvector(instruction))
@@ -412,5 +436,6 @@ namespace mvp
   size_t pad_to_page_size(QVector<uchar> &data);
 
 } // ns mvp
+} // ns mesytec
 
 #endif

@@ -1,5 +1,7 @@
 #include "flash.h"
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -226,12 +228,12 @@ void BasicFlash::ensure_response_ok(
   const gsl::span<uchar> &response)
 {
   if (response.size() < 2) {
-    throw InstructionError(instruction, response, "short response (size<2)");
+    throw FlashInstructionError(instruction, response, "short response (size<2)");
   }
 
   if (!std::equal(std::begin(instruction), std::end(instruction),
         std::begin(response))) {
-    throw InstructionError(instruction, response,
+    throw FlashInstructionError(instruction, response,
       "response contents do not equal instruction contents");
   }
 
@@ -243,7 +245,7 @@ void BasicFlash::ensure_response_ok(
     ensure_response_code_ok(response_code);
   } catch (const std::runtime_error &e) {
     m_write_enabled = false; // write enable is unset on error
-    throw InstructionError(instruction, response, e.what());
+    throw FlashInstructionError(instruction, response, e.what());
   }
 }
 
@@ -441,3 +443,4 @@ size_t pad_to_page_size(QVector<uchar> &data)
 }
 
 } // ns mvp
+} // ns mesytec

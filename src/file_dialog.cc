@@ -4,14 +4,19 @@
 #include <QDialogButtonBox>
 #include <QPushButton>
 
+namespace mesytec
+{
 namespace mvp
 {
+/**
+ * QFileDialog specialization which allows to choose a directory or a file.
+ */
 FileDialog::FileDialog(QWidget *parent)
   : QFileDialog(parent)
 {
   setOption(QFileDialog::DontUseNativeDialog);
   setFileMode(QFileDialog::Directory);
-  setNameFilter("ZIP files (*.zip)");
+  setNameFilter("MVP files (*.mvp)");
 
   auto open_button = get_open_button();
 
@@ -50,3 +55,4 @@ void FileDialog::handle_open_button_clicked()
 }
 
 } // ns mvp
+} // ns mesytec

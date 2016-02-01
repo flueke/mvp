@@ -6,6 +6,8 @@
 #include <QSerialPortInfo>
 #include <gsl.h>
 
+namespace mesytec
+{
 namespace mvp
 {
 
@@ -34,9 +36,6 @@ class PortHelper: public QObject
     /** Returns the list of available serial ports. */
     PortInfoList get_available_ports() const;
 
-    /** Sets the port name the user wants to use. */
-    void set_selected_port_name(const QString &name);
-
     QString get_selected_port_name() const
     { return m_selected_port_info.portName(); }
 
@@ -48,6 +47,9 @@ class PortHelper: public QObject
   public slots:
     void refresh();
 
+    /** Sets the port name the user wants to use. */
+    void set_selected_port_name(const QString &name);
+
   private:
     QSerialPort *m_port;
     QSerialPortInfo m_selected_port_info;
@@ -55,5 +57,6 @@ class PortHelper: public QObject
 };
 
 } // ns mvp
+} // ns mesytec
 
 #endif

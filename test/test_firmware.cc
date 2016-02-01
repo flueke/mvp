@@ -1,12 +1,13 @@
 #include "tests.h"
-#include "mdpp16_firmware.h"
+#include "firmware.h"
 #include "flash.h"
 
-using namespace mvp;
+using namespace mesytec::mvp;
 
-void TestMDPP16Firmware::test_basics()
+void TestFirmware::test_basics()
 {
-  MDPP16Firmware fw;
+#if 0
+  Firmware fw;
 
   for (auto sec: {4,5,6,7,13}) {
     QVERIFY_EXCEPTION_THROWN(fw.has_section(sec), std::runtime_error);
@@ -32,9 +33,10 @@ void TestMDPP16Firmware::test_basics()
     QVERIFY_EXCEPTION_THROWN(fw.set_section(sec, QVector<uchar>(sz)),
                              std::runtime_error);
   }
+#endif
 }
 
-void TestMDPP16Firmware::test_print_section_sizes()
+void TestFirmware::test_print_section_sizes()
 {
   QTextStream out(stdout);
 
@@ -71,7 +73,7 @@ class FirmwareContentsFileTestImpl: public FirmwareContentsFile
     QString get_filename() const
     { return m_filename; }
 
-    QVector<uchar> read_file_contents()
+    QVector<uchar> get_file_contents()
     { return m_contents; }
 
     void set(const QString &filename, const QByteArray &contents)
@@ -115,7 +117,7 @@ class FirmwareContentsFileGeneratorTestImpl
     FirmwareContentsFileTestImpl m_fw_file;
 };
 
-void TestMDPP16Firmware::test_from_firmware_file_generator_simple()
+void TestFirmware::test_from_firmware_file_generator_simple()
 {
   QMap<QString, QByteArray> data = {
     { "00-otp.bin", { "Lot's of content here" } },
@@ -124,22 +126,64 @@ void TestMDPP16Firmware::test_from_firmware_file_generator_simple()
   FirmwareContentsFileGenerator gen =
       FirmwareContentsFileGeneratorTestImpl(data);
 
-  auto fw = from_firmware_file_generator(gen);
+  auto fw = from_firmware_file_generator(gen, "the_filename.mvp");
 
-  QVERIFY(fw.has_section(0));
-  for (auto sec: {1, 2, 3, 8, 9, 10, 11, 12}) {
-    QVERIFY(!fw.has_section(sec));
-  }
+  QCOMPARE(fw.get_filename(), QString("the_filename.mvp"));
+  QCOMPARE(fw.get_parts().size(), 1);
 
-  QCOMPARE(fw.get_section(0), bytearray_to_uchar_vec(data["00-otp.bin"]));
+  auto part = fw.get_parts()[0];
+
+  QCOMPARE(part->get_filename(), QString("00-otp.bin"));
+
+  QVERIFY(part->has_section());
+  QCOMPARE(*part->get_section(), static_cast<uchar>(0u));
+
+  QVERIFY(!part->has_area());
+  QCOMPARE(part->get_contents(), bytearray_to_uchar_vec(data["00-otp.bin"]));
 }
 
-void TestMDPP16Firmware::test_from_firmware_file_generator_duplicate_section()
+void TestFirmware::test_from_firmware_file_generator_empty()
+{
+  QMap<QString, QByteArray> data = {};
+
+  FirmwareContentsFileGenerator gen =
+      FirmwareContentsFileGeneratorTestImpl(data);
+
+  QCOMPARE(from_firmware_file_generator(gen).size(), 0);
+}
+
+void TestFirmware::test_filename_patterns()
+{
+  QMap<QString, QByteArray> data = {
+    { "12-03_otp.bin",    { "Lot's of content here" } },
+    { "12-03-aaa.bin",    { "Lot's of content here" } },
+    { "12_3_aaa.hex",     { "Lot's of content here" } },
+    { "12-3_a.hex.hex",   { "Lot's of content here" } },
+  };
+
+  FirmwareContentsFileGenerator gen =
+      FirmwareContentsFileGeneratorTestImpl(data);
+
+  auto fw = from_firmware_file_generator(gen, "the_filename.mvp");
+
+  QCOMPARE(fw.size(), 4);
+
+  for (auto part: fw.get_parts()) {
+    QVERIFY(part->has_section());
+    QCOMPARE(*part->get_section(), static_cast<uchar>(12u));
+
+    QVERIFY(part->has_area());
+    QCOMPARE(*part->get_area(), static_cast<uchar>(3u));
+  }
+}
+
+#if 0
+void TestFirmware::test_from_firmware_file_generator_duplicate_section()
 {
   QMap<QString, QByteArray> data = {
     { "01-first.bin",   { "01-Lot's of content here" } },
     { "02-second.bin",  { "02-Lot's of content here" } },
-    { "1-again.bin",    { "1-Lot's of content here" } },
+    { "1-again",    { "1-Lot's of content here" } },
   };
 
   FirmwareContentsFileGenerator gen =
@@ -149,34 +193,15 @@ void TestMDPP16Firmware::test_from_firmware_file_generator_duplicate_section()
         from_firmware_file_generator(gen),
         std::runtime_error);
 }
+#endif
 
-void TestMDPP16Firmware::test_from_firmware_file_generator_bin_extension()
-{
-  // duplicate section from filename but no .bin extension
-  QMap<QString, QByteArray> data = {
-    { "01-first.bin",   { "01-Lot's of content here" } },
-    { "02-second.bin",  { "02-Lot's of content here" } },
-    { "1-again.foo",    { "1-Lot's of content here" } },
-  };
-
-  FirmwareContentsFileGenerator gen =
-      FirmwareContentsFileGeneratorTestImpl(data);
-
-  auto fw = from_firmware_file_generator(gen);
-
-  QVERIFY(fw.has_section(1));
-  QVERIFY(fw.has_section(2));
-
-  QCOMPARE(fw.get_section(1), bytearray_to_uchar_vec(data["01-first.bin"]));
-  QCOMPARE(fw.get_section(2), bytearray_to_uchar_vec(data["02-second.bin"]));
-}
-
-void TestMDPP16Firmware::test_from_firmware_file_generator_section_size()
+#if 0
+void TestFirmware::test_from_firmware_file_generator_section_size()
 {
   // exactly max size
   {
     QMap<QString, QByteArray> data = {
-      { "09sec9.bin",   QByteArray(get_section_max_size(9), 0xff) }
+      { "09sec9",   QByteArray(get_section_max_size(9), 0xff) }
     };
 
     FirmwareContentsFileGenerator gen =
@@ -194,7 +219,7 @@ void TestMDPP16Firmware::test_from_firmware_file_generator_section_size()
   // > max size
   {
     QMap<QString, QByteArray> data = {
-      { "09sec9.bin",   QByteArray(get_section_max_size(9)+1, 0xff) }
+      { "09sec9.foobar",   QByteArray(get_section_max_size(9)+1, 0xff) }
     };
 
     FirmwareContentsFileGenerator gen =
@@ -205,3 +230,4 @@ void TestMDPP16Firmware::test_from_firmware_file_generator_section_size()
           std::runtime_error);
   }
 }
+#endif

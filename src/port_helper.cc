@@ -2,15 +2,19 @@
 #include "util.h"
 #include <QSerialPort>
 
+namespace mesytec
+{
 namespace mvp
 {
 
 static PortInfoProvider default_portinfo_provider = [] {
   auto ports(QSerialPortInfo::availablePorts());
 
+#if 0
   ports.erase(std::remove_if(ports.begin(), ports.end(), [](const QSerialPortInfo &info) {
           return info.manufacturer() != "FTDI" || info.serialNumber().isEmpty();
         }), ports.end());
+#endif
 
   return ports;
 };
@@ -38,8 +42,8 @@ PortInfoList PortHelper::get_available_ports() const
 void PortHelper::set_selected_port_name(const QString &name)
 {
   m_selected_port_info = QSerialPortInfo(name);
-  qDebug() << "set_selected_port_name" << name
-    << m_selected_port_info.serialNumber();
+  //qDebug() << "set_selected_port_name" << name
+  //  << m_selected_port_info.serialNumber();
 }
 
 void PortHelper::open_port()
@@ -99,3 +103,4 @@ void PortHelper::refresh()
 }
 
 } // ns mvp
+} // ns mesytec
