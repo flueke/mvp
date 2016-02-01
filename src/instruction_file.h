@@ -12,6 +12,15 @@ struct Instruction
 {
   enum class Type { text, binary };
   typedef QVector<uchar> DataType;
+
+  Instruction() {}
+
+  Instruction(Type t, const Address &address, const DataType &data)
+    : type(t)
+    , address(address)
+    , data(data)
+  {}
+
   Type type;
   Address address;
   DataType data;

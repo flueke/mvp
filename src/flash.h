@@ -226,6 +226,13 @@ namespace mvp
         return *this;
       }
 
+      Address operator+(int n)
+      {
+        Address a(*this);
+        a += n;
+        return a;
+      }
+
     private:
       std::array<uchar, 3> _data = {{0, 0, 0}};
   };

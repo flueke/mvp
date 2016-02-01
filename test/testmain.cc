@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
       std::make_shared<TestQtExceptionPtr>(),
       std::make_shared<TestFlash>(),
       std::make_shared<TestFirmware>(),
-      std::make_shared<TestInstructionFile>()
+      std::make_shared<TestInstructionFile>(),
       std::make_shared<TestInstructionInterpreter>()
     };
 

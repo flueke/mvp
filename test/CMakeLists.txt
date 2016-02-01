@@ -20,6 +20,7 @@ set(LIBMVP_TEST_SOURCES
   test_firmware.cc
   test_flash.cc
   test_instruction_file.cc
+  test_instruction_interpreter.cc
   testmain.cc
   test_util.cc
   )

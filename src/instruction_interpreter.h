@@ -10,7 +10,8 @@ namespace mvp
 
 class Flash;
 
-void run_instructions(const InstructionList &instructions, Flash *m_flash);
+void run_instructions(const InstructionList &instructions, Flash *m_flash, uchar subindex,
+    int address_offset = 0);
 void print_actions(const InstructionList &instructions);
 
 } // ns mvp
