@@ -33,6 +33,7 @@ class TestFirmware: public QObject
     void test_from_firmware_file_generator_empty();
     void test_filename_patterns();
     void test_filename_patterns2();
+    void test_filename_patterns3();
 };
 
 class TestInstructionFile: public QObject
