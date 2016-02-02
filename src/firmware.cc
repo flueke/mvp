@@ -74,6 +74,49 @@ bool Firmware::has_required_sections() const
 
 #endif
 
+FirmwarePartList FirmwareArchive::get_area_specific_parts() const
+{
+  FirmwarePartList ret;
+
+  std::copy_if(std::begin(m_parts), std::end(m_parts),
+      std::back_inserter(ret),
+      [](const FirmwarePartPtr &pp) {
+        return !is_key_part(pp)
+          && pp->has_section()
+          && is_area_specific_section(*pp->get_section());
+      });
+
+  return ret;
+}
+
+FirmwarePartList FirmwareArchive::get_non_area_specific_parts() const
+{
+  FirmwarePartList ret;
+
+  std::copy_if(std::begin(m_parts), std::end(m_parts),
+      std::back_inserter(ret),
+      [](const FirmwarePartPtr &pp) {
+        return !is_key_part(pp)
+          && pp->has_section()
+          && is_non_area_specific_section(*pp->get_section());
+      });
+
+  return ret;
+}
+
+FirmwarePartList FirmwareArchive::get_key_parts() const
+{
+  FirmwarePartList ret;
+
+  std::copy_if(std::begin(m_parts), std::end(m_parts),
+      std::back_inserter(ret),
+      [](const FirmwarePartPtr &pp) {
+        return is_key_part(pp);
+      });
+
+  return ret;
+}
+
 InstructionList InstructionFirmwarePart::get_instructions() const
 {
   auto contents = get_contents();
@@ -145,7 +188,7 @@ class ZipFirmwareFile: public FirmwareContentsFile
 };
 
 static const QVector<QRegularExpression> filename_regexps = {
-  QRegularExpression(R"(^(?<section>\d+)[^0-9]+(?<area>\d+)[^0-9]+\.(?<extension>bin|hex)$)"),
+  QRegularExpression(R"(^(?<section>\d+)[^0-9]+(?<area>\d+).+\.(?<extension>bin|hex)$)"),
   QRegularExpression(R"(^(?<section>\d+)[^0-9]+\.(?<extension>bin|hex)$)"),
   QRegularExpression(R"(^.+\.(?<extension>key)$)")
 };

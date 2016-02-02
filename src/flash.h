@@ -125,7 +125,7 @@ namespace mvp
     return constants::section_max_sizes.value(section);
   }
 
-  inline bool is_area_specific_section(uchar section)
+  inline bool is_non_area_specific_section(uchar section)
   {
     if (!is_valid_section(section))
       throw std::runtime_error("invalid section index");
@@ -133,9 +133,9 @@ namespace mvp
     return constants::non_area_specific_sections.contains(section);
   }
 
-  inline bool is_non_area_specific_section(uchar section)
+  inline bool is_area_specific_section(uchar section)
   {
-    return !is_area_specific_section(section);
+    return !is_non_area_specific_section(section);
   }
 
   class Address

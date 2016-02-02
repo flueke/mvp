@@ -166,6 +166,57 @@ void TestFirmware::test_filename_patterns2()
   }
 }
 
+void output_parts(const FirmwarePartList &parts)
+{
+  for (auto pp: parts) {
+    qDebug() << pp->get_filename()
+      << "area" << pp->has_area()
+      << (pp->has_area() ? *pp->get_area() : 255u)
+      << "section" << pp->has_section()
+      << (pp->has_section() ? *pp->get_section() : 255u)
+      ;
+  }
+}
+
+void TestFirmware::test_filename_patterns3()
+{
+  QMap<QString, QByteArray> data = {
+    { "12_0_MDPP16_prototype_FW01.bin", { "The binary salad is tasty!" } },
+    { "12_1_MDPP16_prototype_FW01.bin", { "The binary salad is tasty!" } },
+    { "1_hardware_descr.hex",           { "Somethings happening here" } },
+    { "8_0_area_descr.hex",             { "Somethings happening here" } },
+    { "8_1_area_descr.hex",             { "Somethings happening here" } },
+    { "mdpp16_sn1337_sw0023.key",       { "Somethings happening here" } },
+  };
+
+  FirmwareContentsFileGenerator gen =
+      FirmwareContentsFileGeneratorTestImpl(data);
+
+  auto fw = from_firmware_file_generator(gen, "the_filename.mvp");
+
+  QCOMPARE(fw.size(), data.size());
+
+  auto parts = fw.get_parts();
+  qDebug() << "all parts:";
+  output_parts(parts);
+  QCOMPARE(parts.size(), data.size());
+
+  parts = fw.get_area_specific_parts();
+  qDebug() << "area specific parts:";
+  output_parts(parts);
+  QCOMPARE(parts.size(), 4);
+
+  parts = fw.get_non_area_specific_parts();
+  qDebug() << "non area specific parts:";
+  output_parts(parts);
+  QCOMPARE(parts.size(), 1);
+
+  parts = fw.get_key_parts();
+  qDebug() << "key parts:";
+  output_parts(parts);
+  QCOMPARE(parts.size(), 1);
+}
+
 #if 0
 void TestFirmware::test_from_firmware_file_generator_duplicate_section()
 {

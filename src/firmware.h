@@ -133,11 +133,18 @@ class FirmwareArchive
     FirmwarePartPtr get_part(int idx) const
     { return m_parts.value(idx); }
 
+    FirmwarePartList get_area_specific_parts() const;
+    FirmwarePartList get_non_area_specific_parts() const;
+    FirmwarePartList get_key_parts() const;
+
     void add_part(const FirmwarePartPtr &part)
     { m_parts.push_back(part); }
 
     int size() const
     { return m_parts.size(); }
+
+    bool is_empty() const
+    { return m_parts.isEmpty(); }
 
   private:
     QString m_filename;
@@ -158,6 +165,21 @@ FirmwareArchive from_firmware_file_generator(FirmwareContentsFileGenerator &gen,
     const QString &archive_filename = QString());
 FirmwareArchive from_dir(const QDir &dir);
 FirmwareArchive from_zip(const QString &zip_filename);
+
+inline bool is_binary_part(const FirmwarePartPtr &pp)
+{
+  return dynamic_cast<BinaryFirmwarePart *>(pp.get());
+}
+
+inline bool is_instruction_part(const FirmwarePartPtr &pp)
+{
+  return dynamic_cast<InstructionFirmwarePart *>(pp.get());
+}
+
+inline bool is_key_part(const FirmwarePartPtr &pp)
+{
+  return dynamic_cast<KeyFirmwarePart *>(pp.get());
+}
 
 } // ns mvp
 } // ns mesytec
