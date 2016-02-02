@@ -61,7 +61,7 @@ class QtExceptionPtr: public QException
     {}
 
     std::exception_ptr get() const { return m_ptr; }
-    void raise() const { std::rethrow_exception(m_ptr); }
+    void raise() const override { std::rethrow_exception(m_ptr); }
     QtExceptionPtr *clone() const override { return new QtExceptionPtr(*this); }
 
   private:
