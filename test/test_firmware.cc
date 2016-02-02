@@ -4,38 +4,6 @@
 
 using namespace mesytec::mvp;
 
-void TestFirmware::test_basics()
-{
-#if 0
-  Firmware fw;
-
-  for (auto sec: {4,5,6,7,13}) {
-    QVERIFY_EXCEPTION_THROWN(fw.has_section(sec), std::runtime_error);
-    QVERIFY_EXCEPTION_THROWN(fw.set_section(sec, {1,2,3,4}), std::runtime_error);
-    QVERIFY_EXCEPTION_THROWN(fw.get_section(sec), std::runtime_error);
-  }
-
-  for (auto sec: constants::section_max_sizes.keys()) {
-    QVERIFY(!fw.has_section(sec));
-
-    const auto sz = get_section_max_size(sec);
-
-    QVERIFY_EXCEPTION_THROWN(fw.set_section(sec, QVector<uchar>(sz+1)),
-                             std::runtime_error);
-
-    QVERIFY(!fw.has_section(sec));
-
-    fw.set_section(sec, QVector<uchar>(sz));
-
-    QVERIFY(fw.has_section(sec));
-    QVERIFY(static_cast<size_t>(fw.get_section(sec).size()) == sz);
-
-    QVERIFY_EXCEPTION_THROWN(fw.set_section(sec, QVector<uchar>(sz)),
-                             std::runtime_error);
-  }
-#endif
-}
-
 void TestFirmware::test_print_section_sizes()
 {
   QTextStream out(stdout);
@@ -166,7 +134,7 @@ void TestFirmware::test_filename_patterns()
 
   auto fw = from_firmware_file_generator(gen, "the_filename.mvp");
 
-  QCOMPARE(fw.size(), 4);
+  QCOMPARE(fw.size(), data.size());
 
   for (auto part: fw.get_parts()) {
     QVERIFY(part->has_section());
@@ -174,6 +142,27 @@ void TestFirmware::test_filename_patterns()
 
     QVERIFY(part->has_area());
     QCOMPARE(*part->get_area(), static_cast<uchar>(3u));
+  }
+}
+
+void TestFirmware::test_filename_patterns2()
+{
+  QMap<QString, QByteArray> data = {
+    { "012-firmware-stream.bin" , { "The binary salad is tasty!" } },
+  };
+
+  FirmwareContentsFileGenerator gen =
+      FirmwareContentsFileGeneratorTestImpl(data);
+
+  auto fw = from_firmware_file_generator(gen, "the_filename.mvp");
+
+  QCOMPARE(fw.size(), data.size());
+
+  for (auto part: fw.get_parts()) {
+    QVERIFY(part->has_section());
+    QCOMPARE(*part->get_section(), static_cast<uchar>(12u));
+
+    QVERIFY(!part->has_area());
   }
 }
 

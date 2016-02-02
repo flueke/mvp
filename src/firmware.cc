@@ -145,8 +145,8 @@ class ZipFirmwareFile: public FirmwareContentsFile
 };
 
 static const QVector<QRegularExpression> filename_regexps = {
-  QRegularExpression(R"(^(?<section>\d+).+(?<area>\d+).+\.(?<extension>bin|hex)$)"),
-  QRegularExpression(R"(^(?<section>\d+).+\.(?<extension>bin|hex)$)"),
+  QRegularExpression(R"(^(?<section>\d+)[^0-9]+(?<area>\d+)[^0-9]+\.(?<extension>bin|hex)$)"),
+  QRegularExpression(R"(^(?<section>\d+)[^0-9]+\.(?<extension>bin|hex)$)"),
   QRegularExpression(R"(^.+\.(?<extension>key)$)")
 };
 

@@ -28,11 +28,11 @@ class TestFirmware: public QObject
 {
   Q_OBJECT
   private slots:
-    void test_basics();
     void test_print_section_sizes();
     void test_from_firmware_file_generator_simple();
     void test_from_firmware_file_generator_empty();
     void test_filename_patterns();
+    void test_filename_patterns2();
 };
 
 class TestInstructionFile: public QObject
