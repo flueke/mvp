@@ -34,6 +34,7 @@ class TestFirmware: public QObject
     void test_filename_patterns();
     void test_filename_patterns2();
     void test_filename_patterns3();
+    void test_empty_bin_part();
 };
 
 class TestInstructionFile: public QObject

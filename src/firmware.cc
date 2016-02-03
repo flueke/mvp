@@ -193,14 +193,6 @@ static const QVector<QRegularExpression> filename_regexps = {
   QRegularExpression(R"(^.+\.(?<extension>key)$)")
 };
 
-#if 0
-static const QString pat_section_area = QStringLiteral(
-    R"(^(?<section>\d+).+(?<area>\d+)\w+\.(?<extension>bin|hex)$)");
-
-static const QString pat_section = QStringLiteral(
-    R"(^(?<section>\d+).*\w+\.(?<extension>bin|hex)$)");
-#endif
-
 FirmwareArchive from_firmware_file_generator(FirmwareContentsFileGenerator &gen,
     const QString &archive_filename)
 {

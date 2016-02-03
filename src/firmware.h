@@ -50,6 +50,9 @@ class FirmwarePart
     void set_contents(const ContentsType &contents)
     { m_contents = contents; }
 
+    ContentsType::size_type get_contents_size() const
+    { return m_contents.size(); }
+
   protected:
     FirmwarePart(const QString &filename,
         const boost::optional<uchar> &area = boost::none,

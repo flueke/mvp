@@ -7,6 +7,8 @@
 #include <gsl.h>
 #include "util.h"
 
+// FIXME: subindex == section...!
+
 namespace mesytec
 {
 namespace mvp
@@ -72,7 +74,9 @@ namespace mvp
 
   namespace constants
   {
-    const uchar firmware_subindex = 0x0C;
+    const uchar otp_subindex      =  0;
+    const uchar keys_subindex     =  2;
+    const uchar firmware_subindex = 12;
     const uchar access_code[]     = { 0xCD, 0xAB };
     const uchar area_index_max    = 0x03;
 
