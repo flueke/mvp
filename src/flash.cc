@@ -9,7 +9,12 @@ using constants::access_code;
 
 QDebug operator<<(QDebug dbg, const Address &a)
 {
-  dbg.nospace() << "A(a0=" << a[0] << ", a1=" << a[1] << ", a2=" << a[2] << ")";
+  dbg.nospace()
+    << "A(a0="  << a[0]
+    << ", a1="  << a[1]
+    << ", a2="  << a[2]
+    << ", int=" << a.to_int() << ", hex=" << QString::number(a.to_int(), 16)
+    << ")";
   return dbg.space();
 }
 
@@ -93,8 +98,8 @@ uchar BasicFlash::read_hardware_id()
 void BasicFlash::write_page(const Address &addr, uchar subindex,
   const gsl::span<uchar> data, int timeout_ms)
 {
-  if (addr[0] != 0)
-    throw std::invalid_argument("write_page: address is not page aligned (a0!=0)");
+  //if (addr[0] != 0)
+  //  throw std::invalid_argument("write_page: address is not page aligned (a0!=0)");
 
   const auto sz = data.size();
 
@@ -104,21 +109,38 @@ void BasicFlash::write_page(const Address &addr, uchar subindex,
   if (sz > constants::page_size)
     throw std::invalid_argument("write_page: data size > page size");
 
-  maybe_set_verbose(false);
+  const bool use_verbose = false;
+
+  maybe_set_verbose(use_verbose);
   maybe_enable_write();
 
   uchar len_byte(sz == constants::page_size ? 0 : sz); // 256 encoded as 0
   m_wbuf = { opcodes::WRF, addr[0], addr[1], addr[2], subindex, len_byte };
 
+  qDebug() << "WRF: addr=" << addr << ", si =" << subindex << ", len =" << len_byte;
+
   write_instruction(m_wbuf);
   write(data, timeout_ms);
+
+  qDebug() << "WRF data written:" << span_to_qvector(data);
+
+  if (use_verbose) {
+    try {
+      //QVector<uchar> rbuf(use_verbose ? 4 + data.size() : 4);
+      //read(gsl::as_span(rbuf));
+      auto rbuf = read_available();
+      qDebug() << "write_page: try read yielded" << rbuf;
+    } catch (const std::exception &e) {
+      qDebug() << "write_page: try read raised" << e.what();
+    }
+  }
 }
 
 void BasicFlash::read_page(const Address &addr, uchar subindex,
   gsl::span<uchar> dest, int timeout_ms)
 {
-  if (addr[0] != 0)
-    throw std::invalid_argument("read_page: address is not page aligned (a0!=0)");
+  //if (addr[0] != 0)
+  //  throw std::invalid_argument("read_page: address is not page aligned (a0!=0)");
 
   auto len = dest.size();
 
@@ -154,9 +176,11 @@ void BasicFlash::write_instruction(const gsl::span<uchar> data, int timeout_ms)
   if (opcode != opcodes::WRF && m_write_enabled) {
     // any instruction except WRF (and EFW) unsets write enable
     qDebug() << "clearing cached write_enable flag (instruction ="
-      << op_to_string(opcode) << " != WRF)";
+      << op_to_string(opcode) << "!= WRF)";
     m_write_enabled = false;
   }
+
+  qDebug() << "instruction written:" << format_bytes(span_to_qvector(data));
 
   emit instruction_written(span_to_qvector(data));
 }
@@ -220,6 +244,10 @@ QVector<uchar> BasicFlash::read_available(int timeout_ms)
   if (res != ret.size())
     throw make_com_error(m_port);
 
+  if (m_port->bytesAvailable()) {
+    qDebug() << "read_available: there are still" << m_port->bytesAvailable() << " bytes available";
+  }
+
   return ret;
 }
 
@@ -269,8 +297,8 @@ void Flash::recover(size_t tries)
 
   for (size_t n=0; n<tries; ++n) {
     try {
-      qDebug() << "recover(): read_available()";
-      read_available(constants::recover_timeout_ms);
+      auto data = read_available(constants::recover_timeout_ms);
+      qDebug() << "recover(): read_available():" << format_bytes(data);
     } catch (const ComError &e) {
       qDebug() << "ignoring ComError from read_available()";
     }

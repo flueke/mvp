@@ -4,6 +4,21 @@
 
 using namespace mesytec::mvp;
 
+namespace
+{
+void output_parts(const FirmwarePartList &parts)
+{
+  for (auto pp: parts) {
+    qDebug() << pp->get_filename()
+      << "area" << pp->has_area()
+      << (pp->has_area() ? *pp->get_area() : 255u)
+      << "section" << pp->has_section()
+      << (pp->has_section() ? *pp->get_section() : 255u)
+      ;
+  }
+}
+} // anon ns
+
 void TestFirmware::test_print_section_sizes()
 {
   QTextStream out(stdout);
@@ -166,18 +181,6 @@ void TestFirmware::test_filename_patterns2()
   }
 }
 
-void output_parts(const FirmwarePartList &parts)
-{
-  for (auto pp: parts) {
-    qDebug() << pp->get_filename()
-      << "area" << pp->has_area()
-      << (pp->has_area() ? *pp->get_area() : 255u)
-      << "section" << pp->has_section()
-      << (pp->has_section() ? *pp->get_section() : 255u)
-      ;
-  }
-}
-
 void TestFirmware::test_filename_patterns3()
 {
   QMap<QString, QByteArray> data = {
@@ -217,57 +220,23 @@ void TestFirmware::test_filename_patterns3()
   QCOMPARE(parts.size(), 1);
 }
 
-#if 0
-void TestFirmware::test_from_firmware_file_generator_duplicate_section()
+void TestFirmware::test_empty_bin_part()
 {
   QMap<QString, QByteArray> data = {
-    { "01-first.bin",   { "01-Lot's of content here" } },
-    { "02-second.bin",  { "02-Lot's of content here" } },
-    { "1-again",    { "1-Lot's of content here" } },
+    { "12_0_MDPP16_prototype_FW01.bin", { } },
   };
 
   FirmwareContentsFileGenerator gen =
       FirmwareContentsFileGeneratorTestImpl(data);
 
-  QVERIFY_EXCEPTION_THROWN(
-        from_firmware_file_generator(gen),
-        std::runtime_error);
+  auto fw = from_firmware_file_generator(gen, "the_filename.mvp");
+
+  QCOMPARE(fw.size(), data.size());
+
+  auto part = fw.get_part(0);
+
+  QCOMPARE(part->get_filename(), QString("12_0_MDPP16_prototype_FW01.bin"));
+  QCOMPARE(*part->get_section(), static_cast<uchar>(12u));
+  QCOMPARE(*part->get_area(), static_cast<uchar>(0u));
+  QVERIFY(part->get_contents().isEmpty());
 }
-#endif
-
-#if 0
-void TestFirmware::test_from_firmware_file_generator_section_size()
-{
-  // exactly max size
-  {
-    QMap<QString, QByteArray> data = {
-      { "09sec9",   QByteArray(get_section_max_size(9), 0xff) }
-    };
-
-    FirmwareContentsFileGenerator gen =
-        FirmwareContentsFileGeneratorTestImpl(data);
-
-    auto fw = from_firmware_file_generator(gen);
-
-    QCOMPARE(static_cast<size_t>(fw.get_section(9).size()),
-             get_section_max_size(9));
-
-    QCOMPARE(fw.get_section(9),
-             QVector<uchar>(get_section_max_size(9), 0xff));
-  }
-
-  // > max size
-  {
-    QMap<QString, QByteArray> data = {
-      { "09sec9.foobar",   QByteArray(get_section_max_size(9)+1, 0xff) }
-    };
-
-    FirmwareContentsFileGenerator gen =
-        FirmwareContentsFileGeneratorTestImpl(data);
-
-    QVERIFY_EXCEPTION_THROWN(
-          from_firmware_file_generator(gen),
-          std::runtime_error);
-  }
-}
-#endif
