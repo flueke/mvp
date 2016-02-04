@@ -52,6 +52,7 @@ class TestInstructionInterpreter: public QObject
   Q_OBJECT
   private slots:
     void test_print();
+    void test_generate_memory();
 };
 
 #endif

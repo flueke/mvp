@@ -231,7 +231,7 @@ namespace mvp
         return *this;
       }
 
-      Address operator+(int n)
+      Address operator+(int n) const
       {
         Address a(*this);
         a += n;

@@ -6,7 +6,7 @@ namespace mvp
 {
 
 void run_instructions(const InstructionList &instructions, Flash *m_flash, uchar subindex,
-    int address_offset)
+    size_t address_offset)
 {
   for (auto instr: instructions) {
     m_flash->write_memory(instr.address + address_offset, subindex,
@@ -32,6 +32,30 @@ void print_actions(const InstructionList &instructions)
         << ", data =" << instr.data;
     }
   }
+}
+
+QVector<uchar> generate_memory(
+    const InstructionList &instructions,
+    size_t address_offset)
+{
+  QVector<uchar> ret;
+
+  for (const auto &instr: instructions) {
+    const auto addr = (instr.address + address_offset).to_int();
+    const auto len  = instr.data.size();
+    const auto size = addr + len;
+    const auto old_size = static_cast<size_t>(ret.size());
+
+    if (old_size < size) {
+      ret.resize(size);
+      std::fill(std::begin(ret) + old_size, std::end(ret), 0xFFu);
+    }
+
+    std::copy(std::begin(instr.data), std::end(instr.data),
+        std::begin(ret) + addr);
+  }
+
+  return ret;
 }
 
 } // ns mvp

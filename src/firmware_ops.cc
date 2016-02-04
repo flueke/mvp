@@ -90,11 +90,28 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
     auto instructions = std::dynamic_pointer_cast<InstructionFirmwarePart>(pp)
       ->get_instructions();
 
-    emit status_message(QString("File %1: executing %2 instructions")
-        .arg(pp->get_filename())
-        .arg(instructions.size()));
+    if (section == constants::otp_subindex) {
 
-    run_instructions(instructions, m_flash, section);
+      auto mem = generate_memory(instructions);
+
+      emit status_message(QString("File %1: OTP: generated %2 bytes of memory")
+          .arg(pp->get_filename())
+          .arg(mem.size()));
+
+      // FIXME: remove this once this has been tested a bit
+      if (static_cast<size_t>(mem.size()) > get_section_max_size(section)) {
+        throw std::runtime_error("OTP section size exceeded by generated memory");
+      }
+
+      m_flash->write_memory({0, 0, 0}, section, gsl::as_span(mem));
+
+    } else {
+      emit status_message(QString("File %1: executing %2 instructions")
+          .arg(pp->get_filename())
+          .arg(instructions.size()));
+
+      run_instructions(instructions, m_flash, section);
+    }
   }
 }
 
