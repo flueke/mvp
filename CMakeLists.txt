@@ -15,6 +15,6 @@ add_subdirectory(test)
 enable_testing()
 add_test(NAME libmvp-test COMMAND testrunner)
 
-add_dependencies(testrunner libmvp_shared)
+add_dependencies(testrunner libmvp)
 
 # vim:tw=0

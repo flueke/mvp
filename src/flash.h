@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <gsl.h>
 #include "util.h"
+#include "libmvp_export.h"
 
 // FIXME: subindex == section...!
 
@@ -49,7 +50,7 @@ namespace mvp
     };
   } // ns opcodes
 
-  inline QString op_to_string(uchar op)
+  inline LIBMVP_EXPORT QString op_to_string(uchar op)
   {
     return opcodes::op_to_string_data.value(op,
         QString::number(static_cast<int>(op), 16));
