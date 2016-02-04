@@ -5,10 +5,10 @@ find_package(Qt5Concurrent REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5SerialPort REQUIRED)
 find_package(Qt5Widgets REQUIRED)
-
+find_package(QuaZip REQUIRED)
 find_package(Boost 1.56 REQUIRED)
 
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS} ${QUAZIP_INCLUDE_DIRS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
@@ -49,5 +49,8 @@ qt5_use_modules(${LIBMVP_STATIC_TARGET}
   SerialPort
   Widgets
   )
+
+target_link_libraries(${LIBMVP_SHARED_TARGET} ${QUAZIP_LIBRARIES})
+target_link_libraries(${LIBMVP_STATIC_TARGET} ${QUAZIP_LIBRARIES})
 
 # vim:tw=0

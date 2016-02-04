@@ -7,7 +7,12 @@ find_package(Qt5SerialPort REQUIRED)
 find_package(Qt5Test REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
-find_library(QUAZIP_QT5 quazip-qt5)
+find_package(QuaZip REQUIRED)
+#if (WIN32)
+#find_library(QUAZIP_QT5 quazip)
+#else()
+#find_library(QUAZIP_QT5 quazip-qt5)
+#endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
