@@ -8,17 +8,10 @@ find_package(Qt5Test REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
 find_package(QuaZip REQUIRED)
-#if (WIN32)
-#find_library(QUAZIP_QT5 quazip)
-#else()
-#find_library(QUAZIP_QT5 quazip-qt5)
-#endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
-include_directories(
-  ${libmvp_SOURCE_DIR}/src
-  )
+include_directories(${libmvp_SOURCE_DIR}/src)
 
 set(LIBMVP_TEST_SOURCES
   test_file_dialog.cc
@@ -48,7 +41,7 @@ qt5_use_modules(${LIBMVP_TEST_TARGET}
 
 target_link_libraries(${LIBMVP_TEST_TARGET}
   mvp
-  ${QUAZIP_QT5}
+  ${QUAZIP_LIBRARIES}
   )
 
 # vim:tw=0
