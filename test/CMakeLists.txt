@@ -11,7 +11,7 @@ find_package(QuaZip REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
-include_directories(${libmvp_SOURCE_DIR}/src)
+include_directories(${libmvp_SOURCE_DIR}/src ${libmvp_BINARY_DIR}/src)
 
 set(LIBMVP_TEST_SOURCES
   test_file_dialog.cc
