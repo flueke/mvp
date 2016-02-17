@@ -6,12 +6,12 @@ find_package(Qt5Gui REQUIRED)
 find_package(Qt5SerialPort REQUIRED)
 find_package(Qt5Test REQUIRED)
 find_package(Qt5Widgets REQUIRED)
-
 find_package(QuaZip REQUIRED)
+find_package(Boost 1.56 REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
-include_directories(${libmvp_SOURCE_DIR}/src ${libmvp_BINARY_DIR}/src)
+include_directories(${Boost_INCLUDE_DIRS} ${libmvp_SOURCE_DIR}/src ${libmvp_BINARY_DIR}/src)
 
 set(LIBMVP_TEST_SOURCES
   test_file_dialog.cc
