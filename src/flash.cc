@@ -117,12 +117,12 @@ void BasicFlash::write_page(const Address &addr, uchar subindex,
   uchar len_byte(sz == constants::page_size ? 0 : sz); // 256 encoded as 0
   m_wbuf = { opcodes::WRF, addr[0], addr[1], addr[2], subindex, len_byte };
 
-  qDebug() << "WRF: addr=" << addr << ", si =" << subindex << ", len =" << len_byte;
+  //qDebug() << "WRF: addr=" << addr << ", si =" << subindex << ", len =" << len_byte;
 
   write_instruction(m_wbuf);
   write(data, timeout_ms);
 
-  qDebug() << "WRF data written:" << span_to_qvector(data);
+  //qDebug() << "WRF data written:" << span_to_qvector(data);
 
   if (use_verbose) {
     try {
