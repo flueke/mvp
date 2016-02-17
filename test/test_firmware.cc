@@ -103,7 +103,7 @@ class FirmwareContentsFileGeneratorTestImpl
 void TestFirmware::test_from_firmware_file_generator_simple()
 {
   QMap<QString, QByteArray> data = {
-    { "00-otp.bin", { "Lot's of content here" } },
+    { "00_otp.bin", { "Lot's of content here" } },
   };
 
   FirmwareContentsFileGenerator gen =
@@ -116,13 +116,13 @@ void TestFirmware::test_from_firmware_file_generator_simple()
 
   auto part = fw.get_parts()[0];
 
-  QCOMPARE(part->get_filename(), QString("00-otp.bin"));
+  QCOMPARE(part->get_filename(), QString("00_otp.bin"));
 
   QVERIFY(part->has_section());
   QCOMPARE(*part->get_section(), static_cast<uchar>(0u));
 
   QVERIFY(!part->has_area());
-  QCOMPARE(part->get_contents(), bytearray_to_uchar_vec(data["00-otp.bin"]));
+  QCOMPARE(part->get_contents(), bytearray_to_uchar_vec(data["00_otp.bin"]));
 }
 
 void TestFirmware::test_from_firmware_file_generator_empty()
@@ -138,10 +138,10 @@ void TestFirmware::test_from_firmware_file_generator_empty()
 void TestFirmware::test_filename_patterns()
 {
   QMap<QString, QByteArray> data = {
-    { "12-03_otp.bin",    { "Lot's of content here" } },
-    { "12-03-aaa.bin",    { "Lot's of content here" } },
+    { "12_03_otp.bin",    { "Lot's of content here" } },
+    { "12_03-aaa.bin",    { "Lot's of content here" } },
     { "12_3_aaa.hex",     { "Lot's of content here" } },
-    { "12-3_a.hex.hex",   { "Lot's of content here" } },
+    { "12_3_a.hex.hex",   { "Lot's of content here" } },
   };
 
   FirmwareContentsFileGenerator gen =
@@ -163,7 +163,7 @@ void TestFirmware::test_filename_patterns()
 void TestFirmware::test_filename_patterns2()
 {
   QMap<QString, QByteArray> data = {
-    { "012-firmware-stream.bin" , { "The binary salad is tasty!" } },
+    { "012_firmware_stream.bin" , { "The binary salad is tasty!" } },
   };
 
   FirmwareContentsFileGenerator gen =
@@ -190,6 +190,7 @@ void TestFirmware::test_filename_patterns3()
     { "8_0_area_descr.hex",             { "Somethings happening here" } },
     { "8_1_area_descr.hex",             { "Somethings happening here" } },
     { "mdpp16_sn1337_sw0023.key",       { "Somethings happening here" } },
+    { "12_mdpp16_scp_fw0005.bin",       { "This resulted in area=16!" } },
   };
 
   FirmwareContentsFileGenerator gen =
@@ -207,7 +208,7 @@ void TestFirmware::test_filename_patterns3()
   parts = fw.get_area_specific_parts();
   qDebug() << "area specific parts:";
   output_parts(parts);
-  QCOMPARE(parts.size(), 4);
+  QCOMPARE(parts.size(), 5);
 
   parts = fw.get_non_area_specific_parts();
   qDebug() << "non area specific parts:";
