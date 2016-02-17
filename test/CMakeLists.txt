@@ -27,8 +27,6 @@ qt5_wrap_cpp(MOC_OUT tests.h)
 
 set(LIBMVP_TEST_TARGET "testrunner")
 
-link_directories(${libmvp_BINARY_DIR}/src)
-
 add_executable(${LIBMVP_TEST_TARGET} EXCLUDE_FROM_ALL ${LIBMVP_TEST_SOURCES} ${MOC_OUT})
 
 qt5_use_modules(${LIBMVP_TEST_TARGET}
@@ -39,8 +37,13 @@ qt5_use_modules(${LIBMVP_TEST_TARGET}
   Widgets
   )
 
+# Use find_library() here to get the full path to libmvp. This way CMake will
+# relink the binary if the library has changed.
+link_directories(${libmvp_BINARY_DIR}/src)
+find_library(LIBMVP mvp PATH ${libmvp_BINARY_DIR}/src)
+
 target_link_libraries(${LIBMVP_TEST_TARGET}
-  mvp
+  ${LIBMVP}
   ${QUAZIP_LIBRARIES}
   )
 
