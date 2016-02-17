@@ -40,10 +40,12 @@ qt5_use_modules(${LIBMVP_TEST_TARGET}
 # Use find_library() here to get the full path to libmvp. This way CMake will
 # relink the binary if the library has changed.
 link_directories(${libmvp_BINARY_DIR}/src)
-find_library(LIBMVP mvp PATH ${libmvp_BINARY_DIR}/src)
+
+#get_property(LIBMVP_LIBRARY_PATH TARGET "libmvp" PROPERTY LIBRARY_PATH)
+#get_property(LIBMVP_LIBRARY_NAME TARGET "libmvp" PROPERTY LIBRARY_OUTPUT_NAME)
 
 target_link_libraries(${LIBMVP_TEST_TARGET}
-  ${LIBMVP}
+  libmvp
   ${QUAZIP_LIBRARIES}
   )
 

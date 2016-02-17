@@ -33,7 +33,11 @@ set(LIBMVP_TARGET "libmvp")
 
 add_library(${LIBMVP_TARGET} ${LIBMVP_SOURCES} ${UIC_OUT} ${RC_OUT})
 
-set_target_properties(${LIBMVP_TARGET} PROPERTIES OUTPUT_NAME "mvp")
+#set_target_properties(${LIBMVP_TARGET} PROPERTIES
+#  OUTPUT_NAME "mvp"
+#  INCLUDE_PATH ${CMAKE_CURRENT_SOURCE_DIR}
+#  LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR}
+#  )
 
 qt5_use_modules(${LIBMVP_TARGET}
   Concurrent
