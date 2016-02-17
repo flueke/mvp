@@ -13,6 +13,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
 include_directories(${Boost_INCLUDE_DIRS} ${libmvp_SOURCE_DIR}/src ${libmvp_BINARY_DIR}/src)
 
+message("libmvp_SOURCE_DIR: ${libmvp_SOURCE_DIR}")
+message("libmvp_BINARY_DIR: ${libmvp_BINARY_DIR}")
+
 set(LIBMVP_TEST_SOURCES
   test_file_dialog.cc
   test_firmware.cc
