@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 2.8.9)
 project(libmvp)
 
 ## Create binaries in the root of the build directory
