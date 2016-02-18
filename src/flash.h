@@ -411,10 +411,11 @@ namespace mvp
       void progress_text_changed(const QString &);
 
     public:
+      static const size_t default_recover_tries = 3;
 
       using BasicFlash::BasicFlash;
 
-      void recover(size_t tries=10);
+      void recover(size_t tries=default_recover_tries);
       void ensure_clean_state();
 
       void write_memory(const Address &start, uchar subindex,

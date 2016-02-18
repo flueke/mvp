@@ -11,14 +11,6 @@ namespace mvp
 class PortHelper;
 class Flash;
 
-/*
- * Options:
- * - do_verify
- *
- * XXX:
- * Not sure if the port helper is needed here
- */
-
 class FirmwareWriter: public QObject
 {
   Q_OBJECT
