@@ -102,35 +102,6 @@ R"(@0x108
   }
 }
 
-void TestInstructionFile::test_invalid_text()
-{
-  {
-    // empty text
-    QString contents =
-R"(@0x108
->
-)";
-
-    QTextStream stream(&contents, QIODevice::ReadOnly);
-    QVERIFY_EXCEPTION_THROWN(
-        parse_instruction_file(stream),
-        InstructionFileParseError);
-  }
-
-  {
-    // wsp only
-    QString contents =
-R"(@0x108
->   
-)";
-
-    QTextStream stream(&contents, QIODevice::ReadOnly);
-    QVERIFY_EXCEPTION_THROWN(
-        parse_instruction_file(stream),
-        InstructionFileParseError);
-  }
-}
-
 void TestInstructionFile::test_invalid_structure()
 {
   {
