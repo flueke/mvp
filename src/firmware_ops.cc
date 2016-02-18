@@ -40,7 +40,7 @@ void FirmwareWriter::write()
   emit status_message("Handling key parts...");
 
   for (auto pp: key_parts) {
-    write_part(pp, constants::keys_subindex);
+    write_part(pp, constants::keys_section);
   }
 
   emit status_message(QString("Restoring area index to %1")
@@ -63,13 +63,13 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
     m_flash->set_area_index(*area);
   }
 
-  if (section != constants::otp_subindex) {
+  if (section != constants::otp_section) {
 
     if (do_erase()) {
       emit status_message(QString("Erasing section %1").arg(section));
-      m_flash->erase_subindex(section);
+      m_flash->erase_section(section);
     }
-  } else if (section == constants::otp_subindex) {
+  } else if (section == constants::otp_section) {
     emit status_message("Not erasing OTP section");
   }
 
@@ -101,7 +101,7 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
     auto instructions = std::dynamic_pointer_cast<InstructionFirmwarePart>(pp)
       ->get_instructions();
 
-    if (section == constants::otp_subindex) {
+    if (section == constants::otp_section) {
 
       auto mem = generate_memory(instructions);
 

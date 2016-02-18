@@ -5,11 +5,11 @@ namespace mesytec
 namespace mvp
 {
 
-void run_instructions(const InstructionList &instructions, Flash *m_flash, uchar subindex,
+void run_instructions(const InstructionList &instructions, Flash *m_flash, uchar section,
     size_t address_offset)
 {
   for (auto instr: instructions) {
-    m_flash->write_memory(instr.address + address_offset, subindex,
+    m_flash->write_memory(instr.address + address_offset, section,
         gsl::as_span(instr.data));
   }
 }

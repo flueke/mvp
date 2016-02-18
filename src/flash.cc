@@ -77,7 +77,7 @@ void BasicFlash::enable_write()
   qDebug() << "end enable_write: set write_enable flag";
 }
 
-void BasicFlash::erase_subindex(uchar index)
+void BasicFlash::erase_section(uchar index)
 {
   maybe_enable_write();
   m_wbuf = { opcodes::ERF, 0, 0, 0, index };
@@ -95,7 +95,7 @@ uchar BasicFlash::read_hardware_id()
   return m_rbuf[1];
 }
 
-void BasicFlash::write_page(const Address &addr, uchar subindex,
+void BasicFlash::write_page(const Address &addr, uchar section,
   const gsl::span<uchar> data, int timeout_ms)
 {
   //if (addr[0] != 0)
@@ -115,9 +115,9 @@ void BasicFlash::write_page(const Address &addr, uchar subindex,
   maybe_enable_write();
 
   uchar len_byte(sz == constants::page_size ? 0 : sz); // 256 encoded as 0
-  m_wbuf = { opcodes::WRF, addr[0], addr[1], addr[2], subindex, len_byte };
+  m_wbuf = { opcodes::WRF, addr[0], addr[1], addr[2], section, len_byte };
 
-  //qDebug() << "WRF: addr=" << addr << ", si =" << subindex << ", len =" << len_byte;
+  //qDebug() << "WRF: addr=" << addr << ", si =" << section << ", len =" << len_byte;
 
   write_instruction(m_wbuf);
   write(data, timeout_ms);
@@ -136,7 +136,7 @@ void BasicFlash::write_page(const Address &addr, uchar subindex,
   }
 }
 
-void BasicFlash::read_page(const Address &addr, uchar subindex,
+void BasicFlash::read_page(const Address &addr, uchar section,
   gsl::span<uchar> dest, int timeout_ms)
 {
   //if (addr[0] != 0)
@@ -154,16 +154,16 @@ void BasicFlash::read_page(const Address &addr, uchar subindex,
 
   uchar len_byte(len == constants::page_size ? 0 : len); // 256 encoded as 0
 
-  m_wbuf = { opcodes::REF, addr[0], addr[1], addr[2], subindex, len_byte };
+  m_wbuf = { opcodes::REF, addr[0], addr[1], addr[2], section, len_byte };
   write_instruction(m_wbuf);
   read(dest, timeout_ms);
 }
 
-QVector<uchar> BasicFlash::read_page(const Address &addr, uchar subindex,
+QVector<uchar> BasicFlash::read_page(const Address &addr, uchar section,
   size_t len, int timeout_ms)
 {
   QVector<uchar> ret(len);
-  read_page(addr, subindex, gsl::as_span(ret), timeout_ms);
+  read_page(addr, section, gsl::as_span(ret), timeout_ms);
   return ret;
 }
 
@@ -326,7 +326,7 @@ void Flash::ensure_clean_state()
   qDebug() << "end ensure_clean_state";
 }
 
-void Flash::write_memory(const Address &start, uchar subindex, const gsl::span<uchar> data)
+void Flash::write_memory(const Address &start, uchar section, const gsl::span<uchar> data)
 {
   Address addr(start);
   size_t remaining = data.size();
@@ -338,7 +338,7 @@ void Flash::write_memory(const Address &start, uchar subindex, const gsl::span<u
   while (remaining) {
     emit progress_changed(progress++);
     auto len = std::min(constants::page_size, remaining);
-    write_page(addr, subindex, gsl::as_span(data.data() + offset, len));
+    write_page(addr, section, gsl::as_span(data.data() + offset, len));
 
     remaining -= len;
     addr      += len;
@@ -346,11 +346,11 @@ void Flash::write_memory(const Address &start, uchar subindex, const gsl::span<u
   }
 }
 
-QVector<uchar> Flash::read_memory(const Address &start, uchar subindex,
+QVector<uchar> Flash::read_memory(const Address &start, uchar section,
   size_t len, EarlyReturnFun early_return_fun)
 {
   qDebug() << "read_memory: start =" << start
-           << ", si =" << subindex
+           << ", si =" << section
            << ", len =" << len
            << ", early return function set =" << bool(early_return_fun);
 
@@ -370,11 +370,11 @@ QVector<uchar> Flash::read_memory(const Address &start, uchar subindex,
 
     auto rl = std::min(constants::page_size, remaining);
     auto page_span = gsl::as_span(ret.data() + offset, rl);
-    read_page(addr, subindex, page_span);
+    read_page(addr, section, page_span);
 
     offset    += rl;
 
-    if (early_return_fun && early_return_fun(addr, subindex, page_span)) {
+    if (early_return_fun && early_return_fun(addr, section, page_span)) {
       ret.resize(offset);
       return ret;
     }
@@ -386,7 +386,7 @@ QVector<uchar> Flash::read_memory(const Address &start, uchar subindex,
   return ret;
 }
 
-VerifyResult Flash::verify_memory(const Address &start, uchar subindex, const gsl::span<uchar> data)
+VerifyResult Flash::verify_memory(const Address &start, uchar section, const gsl::span<uchar> data)
 {
   set_verbose(false);
 
@@ -395,7 +395,7 @@ VerifyResult Flash::verify_memory(const Address &start, uchar subindex, const gs
     return res.first != page.end();
   };
 
-  auto mem = read_memory(start, subindex, data.size(), fun);
+  auto mem = read_memory(start, section, data.size(), fun);
   auto res = std::mismatch(mem.begin(), mem.end(), data.begin());
 
   if (res.first == mem.end())
@@ -404,10 +404,10 @@ VerifyResult Flash::verify_memory(const Address &start, uchar subindex, const gs
   return VerifyResult(res.second - data.begin(), *res.second, *res.first);
 }
 
-void Flash::erase_subindex(uchar index)
+void Flash::erase_section(uchar index)
 {
   emit progress_range_changed(0, 0);
-  BasicFlash::erase_subindex(index);
+  BasicFlash::erase_section(index);
 }
 
 VerifyResult Flash::blankcheck_section(uchar section, size_t size)

@@ -8,7 +8,7 @@
 #include "util.h"
 #include "libmvp_export.h"
 
-// FIXME: subindex == section...!
+// FIXME: section == section...!
 
 namespace mesytec
 {
@@ -30,7 +30,7 @@ namespace mvp
     const uchar BFP = 0x70; // set FPGA boot area index and boot
     const uchar EFW = 0x80; // enable flash write/erase;
                             // cleared after any op except WRF; cleared on error
-    const uchar ERF = 0x90; // erase selected flash area; 3 dummy address bytes, 1 subindex byte
+    const uchar ERF = 0x90; // erase selected flash area; 3 dummy address bytes, 1 section byte
     const uchar WRF = 0xA0; // write flash or OTP
     const uchar REF = 0xB0; // read flash or OTP
 
@@ -75,9 +75,9 @@ namespace mvp
 
   namespace constants
   {
-    const uchar otp_subindex      =  0;
-    const uchar keys_subindex     =  2;
-    const uchar firmware_subindex = 12;
+    const uchar otp_section      =  0;
+    const uchar keys_section     =  2;
+    const uchar firmware_section = 12;
     const uchar access_code[]     = { 0xCD, 0xAB };
     const uchar area_index_max    = 0x03;
 
@@ -281,16 +281,16 @@ namespace mvp
       void set_verbose(bool verbose);
       void boot(uchar area_index);
       void enable_write();
-      virtual void erase_subindex(uchar index);
+      virtual void erase_section(uchar index);
       uchar read_hardware_id();
 
-      void write_page(const Address &address, uchar subindex,
+      void write_page(const Address &address, uchar section,
         const gsl::span<uchar> data, int timeout_ms = constants::data_timeout_ms);
 
-      void read_page(const Address &address, uchar subindex, gsl::span<uchar> dest,
+      void read_page(const Address &address, uchar section, gsl::span<uchar> dest,
         int timeout_ms = constants::data_timeout_ms);
 
-      QVector<uchar> read_page(const Address &address, uchar subindex, size_t len,
+      QVector<uchar> read_page(const Address &address, uchar section, size_t len,
         int timeout_ms = constants::data_timeout_ms);
 
       QVector<uchar> read_available(
@@ -423,20 +423,20 @@ namespace mvp
       void recover(size_t tries=default_recover_tries);
       void ensure_clean_state();
 
-      void write_memory(const Address &start, uchar subindex,
+      void write_memory(const Address &start, uchar section,
         const gsl::span<uchar> data);
 
       typedef std::function<bool (
           const Address &, uchar, const gsl::span<uchar>)>
         EarlyReturnFun;
 
-      QVector<uchar> read_memory(const Address &start, uchar subindex,
+      QVector<uchar> read_memory(const Address &start, uchar section,
         size_t len, EarlyReturnFun f = nullptr);
 
-      VerifyResult verify_memory(const Address &start, uchar subindex,
+      VerifyResult verify_memory(const Address &start, uchar section,
         const gsl::span<uchar> data);
 
-      virtual void erase_subindex(uchar index);
+      virtual void erase_section(uchar index);
       VerifyResult blankcheck_section(uchar section, size_t size);
   };
 
