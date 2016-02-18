@@ -396,6 +396,28 @@ namespace mvp
     uchar actual   = 0;
   };
 
+  class FlashVerificationError: public std::runtime_error
+  {
+    public:
+      FlashVerificationError(const VerifyResult &result,
+          const QString &message = QString("verification error"))
+        : std::runtime_error(message.toStdString())
+        , m_result(result)
+      {}
+
+      const VerifyResult &result() const { return m_result; }
+
+      const QString to_string() const
+      {
+        return QString("%1: %2")
+          .arg(what())
+          .arg(m_result.to_string());
+      }
+
+    private:
+      VerifyResult m_result;
+  };
+
   class Canceled: public std::runtime_error
   {
     public:
@@ -434,6 +456,9 @@ namespace mvp
       virtual void erase_subindex(uchar index);
       void erase_firmware();
       void write_firmware(const gsl::span<uchar> data);
+
+      VerifyResult blankcheck_section(uchar section);
+      VerifyResult blankcheck_section(uchar section, size_t size);
 
       VerifyResult verify_firmware(const gsl::span<uchar> data);
       VerifyResult blankcheck_firmware();
