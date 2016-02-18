@@ -410,35 +410,6 @@ void Flash::erase_subindex(uchar index)
   BasicFlash::erase_subindex(index);
 }
 
-void Flash::erase_firmware()
-{
-  emit progress_text_changed("Erasing firmware");
-  erase_subindex(constants::firmware_subindex);
-}
-
-void Flash::write_firmware(const gsl::span<uchar> data)
-{
-  emit progress_text_changed("Writing firmware");
-  set_verbose(false);
-  write_memory({0, 0, 0}, constants::firmware_subindex, data);
-}
-
-VerifyResult Flash::verify_firmware(const gsl::span<uchar> data)
-{
-  emit progress_text_changed("Verifying firmware");
-  set_verbose(false);
-  auto ret = verify_memory({0, 0, 0}, constants::firmware_subindex, data);
-
-  emit progress_text_changed(QString("Verify firmware: %1").arg(ret.to_string()));
-
-  return ret;
-}
-
-VerifyResult Flash::blankcheck_section(uchar section)
-{
-  return blankcheck_section(section, get_section_max_size(section));
-}
-
 VerifyResult Flash::blankcheck_section(uchar section, size_t size)
 {
   emit progress_text_changed(QString("Blankchecking section %1 (sz=%2)")
@@ -461,11 +432,6 @@ VerifyResult Flash::blankcheck_section(uchar section, size_t size)
       .arg(ret.to_string()));
 
   return ret;
-}
-
-VerifyResult Flash::blankcheck_firmware()
-{
-  return blankcheck_section(constants::firmware_subindex, constants::firmware_max_size);
 }
 
 size_t pad_to_page_size(QVector<uchar> &data)

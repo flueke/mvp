@@ -19,22 +19,6 @@ void output_parts(const FirmwarePartList &parts)
 }
 } // anon ns
 
-void TestFirmware::test_print_section_sizes()
-{
-  QTextStream out(stdout);
-
-  out << "Section max sizes" << endl;
-  out << qSetFieldWidth(8);
-  out << "Section" << "Sectors" << "Bytes" << endl;
-
-  for (auto sec: constants::section_max_sizes.keys()) {
-    const auto bytes = get_section_max_size(sec);
-    const auto sectors = bytes / constants::sector_size;
-
-    out << sec << sectors << bytes << endl;
-  }
-}
-
 QVector<uchar> bytearray_to_uchar_vec(const QByteArray &data)
 {
   QVector<uchar> ret;

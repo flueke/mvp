@@ -69,13 +69,6 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
       emit status_message(QString("Erasing section %1").arg(section));
       m_flash->erase_subindex(section);
     }
-
-    if (do_blankcheck()) {
-      //emit status_message(QString("Blankchecking section %1").arg(section));
-      auto res = m_flash->blankcheck_section(section);
-      if (!res) throw FlashVerificationError(res);
-    }
-
   } else if (section == constants::otp_subindex) {
     emit status_message("Not erasing OTP section");
   }
