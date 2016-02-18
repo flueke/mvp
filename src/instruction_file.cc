@@ -43,16 +43,10 @@ TypeDataPair parse_data(int line_number, QString line)
 
   if (line.startsWith('>')) {
 
-    if (line.midRef(1).trimmed().isEmpty())
-      throw InstructionFileParseError(line_number, orig_line,
-          "Empty text data");
-
     ret.first = Instruction::Type::text;
 
     std::transform(std::begin(line)+1, std::end(line), std::back_inserter(ret.second),
         [](QChar qc) { return qc.toLatin1(); });
-
-    ret.second.push_back('\0');
 
   } else if (line.startsWith('%')) {
     ret.first = Instruction::Type::binary;
