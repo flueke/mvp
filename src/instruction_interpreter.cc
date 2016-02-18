@@ -36,7 +36,8 @@ void print_actions(const InstructionList &instructions)
 
 QVector<uchar> generate_memory(
     const InstructionList &instructions,
-    size_t address_offset)
+    size_t address_offset,
+    size_t min_size)
 {
   QVector<uchar> ret;
 
@@ -53,6 +54,13 @@ QVector<uchar> generate_memory(
 
     std::copy(std::begin(instr.data), std::end(instr.data),
         std::begin(ret) + addr);
+  }
+
+  const auto old_size = static_cast<size_t>(ret.size());
+
+  if (old_size < min_size) {
+    ret.resize(min_size);
+    std::fill(std::begin(ret) + old_size, std::end(ret), 0xFFu);
   }
 
   return ret;
