@@ -22,7 +22,6 @@ void FirmwareWriter::write()
   auto key_parts = m_firmware.get_key_parts();
   const auto selected_area = m_flash->read_area_index();
 
-  //m_flash->maybe_set_verbose(false);
   m_flash->set_verbose(false);
 
   emit status_message("Writing non area-specific parts...");
@@ -65,9 +64,19 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
   }
 
   if (section != constants::otp_subindex) {
-    emit status_message(QString("Erasing section %1").arg(section));
-    m_flash->erase_subindex(section);
-  } else {
+
+    if (do_erase()) {
+      emit status_message(QString("Erasing section %1").arg(section));
+      m_flash->erase_subindex(section);
+    }
+
+    if (do_blankcheck()) {
+      //emit status_message(QString("Blankchecking section %1").arg(section));
+      auto res = m_flash->blankcheck_section(section);
+      if (!res) throw FlashVerificationError(res);
+    }
+
+  } else if (section == constants::otp_subindex) {
     emit status_message("Not erasing OTP section");
   }
 
@@ -78,11 +87,20 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
       emit status_message(QString("File %1: empty file -> erase only")
           .arg(pp->get_filename()));
 
-    } else {
+    } else if (do_program()) {
       emit status_message(QString("File %1: writing %2 bytes of data")
           .arg(pp->get_filename()).arg(contents.size()));
 
       m_flash->write_memory({0, 0, 0}, section, gsl::as_span(contents));
+    }
+
+    if (!contents.isEmpty() && do_verify()) {
+      emit status_message(QString("File %1: verifying memory")
+          .arg(pp->get_filename()));
+
+
+      auto res = m_flash->verify_memory({0, 0, 0}, section, gsl::as_span(contents));
+      if (!res) throw FlashVerificationError(res);
     }
   } else if (is_instruction_part(pp)) {
     // FIXME: this also handles KeyFirmwareParts!
@@ -98,19 +116,43 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
           .arg(pp->get_filename())
           .arg(mem.size()));
 
-      // FIXME: remove this once this has been tested a bit
-      if (static_cast<size_t>(mem.size()) > get_section_max_size(section)) {
-        throw std::runtime_error("OTP section size exceeded by generated memory");
+      if (do_program()) {
+        emit status_message(QString("File %1: writing %2 bytes of data")
+            .arg(pp->get_filename()).arg(mem.size()));
+
+        m_flash->write_memory({0, 0, 0}, section, gsl::as_span(mem));
       }
 
-      m_flash->write_memory({0, 0, 0}, section, gsl::as_span(mem));
+      if (do_verify()) {
+        emit status_message(QString("File %1: verifying memory")
+            .arg(pp->get_filename()));
+
+        auto res = m_flash->verify_memory({0, 0, 0}, section, gsl::as_span(mem));
+
+        qDebug() << res.to_string();
+
+        if (!res) throw FlashVerificationError(res);
+      }
 
     } else {
-      emit status_message(QString("File %1: executing %2 instructions")
-          .arg(pp->get_filename())
-          .arg(instructions.size()));
+      if (do_program()) {
+        emit status_message(QString("File %1: executing %2 instructions")
+            .arg(pp->get_filename())
+            .arg(instructions.size()));
 
-      run_instructions(instructions, m_flash, section);
+        run_instructions(instructions, m_flash, section);
+      }
+
+      if (do_verify()) {
+        emit status_message(QString("File %1: verifying memory")
+            .arg(pp->get_filename()));
+
+        auto mem = generate_memory(instructions);
+
+        auto res = m_flash->verify_memory({0, 0, 0}, section, gsl::as_span(mem));
+        qDebug() << res.to_string();
+        if (!res) throw FlashVerificationError(res);
+      }
     }
   }
 }

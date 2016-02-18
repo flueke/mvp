@@ -180,7 +180,7 @@ void BasicFlash::write_instruction(const gsl::span<uchar> data, int timeout_ms)
     m_write_enabled = false;
   }
 
-  qDebug() << "instruction written:" << format_bytes(span_to_qvector(data));
+  //qDebug() << "instruction written:" << format_bytes(span_to_qvector(data));
 
   emit instruction_written(span_to_qvector(data));
 }
@@ -434,9 +434,16 @@ VerifyResult Flash::verify_firmware(const gsl::span<uchar> data)
   return ret;
 }
 
-VerifyResult Flash::blankcheck_firmware()
+VerifyResult Flash::blankcheck_section(uchar section)
 {
-  emit progress_text_changed("Blankcheck");
+  return blankcheck_section(section, get_section_max_size(section));
+}
+
+VerifyResult Flash::blankcheck_section(uchar section, size_t size)
+{
+  emit progress_text_changed(QString("Blankchecking section %1 (sz=%2)")
+      .arg(static_cast<int>(section))
+      .arg(size));
 
   set_verbose(false);
 
@@ -445,15 +452,20 @@ VerifyResult Flash::blankcheck_firmware()
     return it != page.end();
   };
 
-  auto mem = read_memory({0, 0, 0}, constants::firmware_subindex,
-    constants::firmware_max_size, fun);
-
+  auto mem = read_memory({0, 0, 0}, section, size, fun);
   auto it  = std::find_if(mem.begin(), mem.end(), [](uchar c) { return c != 0xff; });
   auto ret = (it == mem.end() ? VerifyResult() : VerifyResult(it - mem.begin(), 0xff, *it));
 
-  emit progress_text_changed(QString("Blankcheck: %1").arg(ret.to_string()));
+  emit progress_text_changed(QString("Blankcheck result for section %1: %2")
+      .arg(static_cast<int>(section))
+      .arg(ret.to_string()));
 
   return ret;
+}
+
+VerifyResult Flash::blankcheck_firmware()
+{
+  return blankcheck_section(constants::firmware_subindex, constants::firmware_max_size);
 }
 
 size_t pad_to_page_size(QVector<uchar> &data)
