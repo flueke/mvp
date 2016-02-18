@@ -16,7 +16,8 @@ void print_actions(const InstructionList &instructions);
 
 QVector<uchar> generate_memory(
       const InstructionList &instructions,
-      size_t address_offset = 0);
+      size_t address_offset = 0,
+      size_t min_size = 0);
 
 } // ns mvp
 } // ns mesytec
