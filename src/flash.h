@@ -90,18 +90,7 @@ namespace mvp
     // 51 sectors * 64 * 1024 = 3342336
     const size_t firmware_max_size = firmware_sectors * sector_size;
 
-    const QMap<uchar, size_t> section_max_sizes = {
-      {  0, 65 },
-      {  1, sector_size },
-      {  2, sector_size },
-      {  3, sector_size * 8 },
-      {  8, subsector_size },
-      {  9, sector_size },
-      { 10, sector_size },
-      { 11, sector_size * 6 },
-      { 12, firmware_max_size }
-    };
-
+    const QSet<uchar> valid_sections = {{0, 1, 2, 3, 8, 9, 10, 11, 12}};
     const QSet<uchar> non_area_specific_sections = {{0, 1, 2, 3}};
 
     const int default_timeout_ms =  3000;
@@ -114,20 +103,14 @@ namespace mvp
 
   inline bool is_valid_section(uchar section)
   {
-    return constants::section_max_sizes.contains(section);
+    return constants::valid_sections.contains(section);
   }
 
   inline QList<uchar> get_valid_sections()
   {
-    return constants::section_max_sizes.keys();
-  }
-
-  inline size_t get_section_max_size(uchar section)
-  {
-    if (!is_valid_section(section))
-      throw std::runtime_error("invalid section index");
-
-    return constants::section_max_sizes.value(section);
+    auto ret = constants::valid_sections.toList();
+    qSort(ret);
+    return ret;
   }
 
   inline bool is_non_area_specific_section(uchar section)
@@ -454,14 +437,7 @@ namespace mvp
         const gsl::span<uchar> data);
 
       virtual void erase_subindex(uchar index);
-      void erase_firmware();
-      void write_firmware(const gsl::span<uchar> data);
-
-      VerifyResult blankcheck_section(uchar section);
       VerifyResult blankcheck_section(uchar section, size_t size);
-
-      VerifyResult verify_firmware(const gsl::span<uchar> data);
-      VerifyResult blankcheck_firmware();
   };
 
   size_t pad_to_page_size(QVector<uchar> &data);
