@@ -97,7 +97,7 @@ QString Instruction::to_string() const
   if (type != Type::text)
     throw std::runtime_error("Can not convert non-string type instruction to string");
 
-  return QString::fromLatin1(reinterpret_cast<const char *>(data.data()));
+  return QString::fromLatin1(reinterpret_cast<const char *>(data.data()), data.size());
 }
 
 QVector<Instruction> parse_instruction_file(QTextStream &stream)

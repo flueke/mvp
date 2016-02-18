@@ -43,7 +43,6 @@ class TestInstructionFile: public QObject
   private slots:
     void test_valid();
     void test_invalid_binary();
-    void test_invalid_text();
     void test_invalid_structure();
 };
 
