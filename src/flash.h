@@ -411,6 +411,32 @@ namespace mvp
       Canceled(): std::runtime_error("Canceled") {}
   };
 
+  class KeyError: public std::runtime_error
+  {
+    public:
+      KeyError(const std::string &msg = std::string("key error")):
+        std::runtime_error(msg)
+    {}
+  };
+
+  class Key
+  {
+    public:
+      Key();
+
+      std::string get_prefix() const { return m_prefix; }
+      uint32_t get_sn() const { return m_sn; }
+      uint16_t get_sw() const { return m_sw; }
+      uint32_t get_key() const { return m_key; }
+
+      static Key from_data(const gsl::span<uchar> data);
+    private:
+      std::string m_prefix;
+      uint32_t m_sn  = 0;
+      uint16_t m_sw  = 0;
+      uint32_t m_key = 0;
+  };
+
   class Flash: public BasicFlash
   {
     Q_OBJECT
