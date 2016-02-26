@@ -6,6 +6,7 @@ using namespace mesytec;
 
 int main(int argc, char *argv[])
 {
+  Q_INIT_RESOURCE(resources);
   using mvp::PortInfoList;
   qRegisterMetaType<PortInfoList>("PortInfoList");
 

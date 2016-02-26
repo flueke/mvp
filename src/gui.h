@@ -1,5 +1,5 @@
-#ifndef UUID_38aac333_3951_4b01_abe7_0c90c425b0ec
-#define UUID_38aac333_3951_4b01_abe7_0c90c425b0ec
+#ifndef UUID_cfaa97f6_7609_496a_8cbd_4f9ac2229047
+#define UUID_cfaa97f6_7609_496a_8cbd_4f9ac2229047
 
 #include <QEventLoop>
 #include <QFutureWatcher>
@@ -73,7 +73,7 @@ class MVPGui: public QMainWindow
     FlashWidget *m_flashwidget;
     QProgressBar *m_progressbar;
 
-    Firmware m_firmware;
+    FirmwareArchive m_firmware;
 };
 
 } // ns mvp

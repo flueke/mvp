@@ -3,6 +3,7 @@
 #include "util.h"
 #include "file_dialog.h"
 #include "flash_widget.h"
+#include "firmware_ops.h"
 
 #include <QFileDialog>
 #include <QFileInfo>
@@ -130,11 +131,6 @@ void MVPGui::_on_start_button_clicked()
     return;
   }
 
-  if (!m_firmware.has_required_sections()) {
-    append_to_log("Error: missing required section(s)");
-    return;
-  }
-
   auto area_index = m_flashwidget->get_area_index();
   ThreadMover tm(m_object_holder, 0);
 
@@ -148,35 +144,14 @@ void MVPGui::_on_start_button_clicked()
     qDebug() << "Firmware: set area index" << area_index;
     m_flash->set_area_index(area_index);
 
-    for (auto sec: get_valid_sections()) {
-      if (!m_firmware.has_section(sec))
-        continue;
+    FirmwareWriter fw_writer(m_firmware, m_port_helper, m_flash);
 
-      qDebug() << "Firmware: working on section" << sec;
+    connect(&fw_writer, SIGNAL(status_message(const QString &)),
+        this, SLOT(append_to_log(const QString &)),
+        Qt::QueuedConnection);
 
-      qDebug() << "Firmware: erase";
+    fw_writer.write();
 
-      append_to_log_queued(QString("Erasing section %1").arg(sec));
-      m_flash->erase_subindex(sec);
-
-      auto content = m_firmware.get_section(sec);
-      qDebug() << "Firmware: write memory" << content.size();
-
-      append_to_log_queued(QString("Writing %1 bytes to section %2")
-                           .arg(content.size()).arg(sec));
-
-      m_flash->write_memory({0, 0, 0}, sec, gsl::as_span(content));
-
-      qDebug() << "Firmware: verify memory" << content.size();
-      append_to_log_queued(QString("Verify: reading %1 bytes from section %2")
-                           .arg(content.size()).arg(sec));
-
-      m_flash->verify_memory({0, 0, 0}, sec, gsl::as_span(content));
-
-      append_to_log_queued(QString("Section %1 done").arg(sec));
-
-      qDebug() << "Firmware: done with section" << sec;
-    }
   }, m_object_holder);
 
   m_fw.setFuture(f_result);
@@ -190,18 +165,21 @@ void MVPGui::_on_start_button_clicked()
   try {
     m_fw.waitForFinished();
     auto ss = m_flash->get_last_status();
-    auto area = get_area(ss);
+    //auto area = get_area(ss);
     auto dips = get_dipswitch(ss);
 
     append_to_log(
-          QString("Firmware from %1 written to area %2.")
-          .arg(m_flashwidget->get_firmware_file())
-          .arg(area));
+          QString("Processed firmware from %1.")
+          .arg(m_flashwidget->get_firmware_file()));
 
     append_to_log(
-          QString("Boot area on power cycle is %1 (dipswitches)")
+          QString("Boot area on power cycle is %1 (dipswitches).\n")
           .arg(dips));
 
+  } catch (const FlashInstructionError &e) {
+    append_to_log(e.to_string());
+  } catch (const FlashVerificationError &e) {
+    append_to_log(e.to_string());
   } catch (const std::exception &e) {
     append_to_log(QString(e.what()));
   }
@@ -211,7 +189,7 @@ void MVPGui::_on_firmware_file_changed(const QString &filename)
 {
   ThreadMover tm(m_object_holder, 0);
 
-  auto f_result = run_in_thread<Firmware>([&] {
+  auto f_result = run_in_thread<FirmwareArchive>([&] {
     QFileInfo fi(filename);
 
     auto firmware = fi.isDir()
@@ -219,10 +197,6 @@ void MVPGui::_on_firmware_file_changed(const QString &filename)
                     : from_zip(filename);
 
     qDebug() << "Firmware object created from" << fi.filePath();
-
-    // TODO: move this code somewhere into libmvp
-    if (!firmware.has_required_sections())
-      throw std::runtime_error("Firmware: missing required sections (8 and/or 12)");
 
     return firmware;
   }, m_object_holder);
@@ -237,8 +211,41 @@ void MVPGui::_on_firmware_file_changed(const QString &filename)
 
   try {
     m_firmware = f_result.result();
+
+    append_to_log(QString("Loaded firmware from %1")
+        .arg(m_firmware.get_filename()));
+
+    append_to_log("Area specific parts:");
+
+    for (const auto &part: m_firmware.get_area_specific_parts()) {
+      append_to_log(QString("\tfn=%1, area=%2, sec=%3, sz=%4")
+          .arg(part->get_filename())
+          .arg(part->has_area() ? QString::number(*part->get_area()) : QString("None"))
+          .arg(part->has_section() ? QString::number(*part->get_section()) : QString("None"))
+          .arg(part->get_contents_size())
+          );
+    }
+
+    append_to_log(QString("Non-area specific parts:"));
+
+    for (const auto &part: m_firmware.get_non_area_specific_parts()) {
+      append_to_log(QString("\tfn=%1, sec=%3, sz=%4")
+          .arg(part->get_filename())
+          .arg(part->has_section() ? QString::number(*part->get_section()) : QString("None"))
+          .arg(part->get_contents_size())
+          );
+    }
+
+    append_to_log(QString("Key parts:"));
+
+    for (const auto &part: m_firmware.get_key_parts()) {
+      append_to_log(QString("\tfn=%1, sz=%4")
+          .arg(part->get_filename())
+          .arg(part->get_contents_size())
+          );
+    }
   } catch (const std::exception &e) {
-    m_firmware.clear();
+    m_firmware = FirmwareArchive();
     append_to_log(QString(e.what()));
   }
 }
