@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <gsl.h>
 #include "util.h"
+#include "libmvp_export.h"
 
 namespace mesytec
 {
@@ -27,7 +28,7 @@ namespace mvp
     const uchar BFP = 0x70; // set FPGA boot area index and boot
     const uchar EFW = 0x80; // enable flash write/erase;
                             // cleared after any op except WRF; cleared on error
-    const uchar ERF = 0x90; // erase selected flash area; 3 dummy address bytes, 1 subindex byte
+    const uchar ERF = 0x90; // erase selected flash area; 3 dummy address bytes, 1 section byte
     const uchar WRF = 0xA0; // write flash or OTP
     const uchar REF = 0xB0; // read flash or OTP
 
@@ -47,7 +48,7 @@ namespace mvp
     };
   } // ns opcodes
 
-  inline QString op_to_string(uchar op)
+  inline LIBMVP_EXPORT QString op_to_string(uchar op)
   {
     return opcodes::op_to_string_data.value(op,
         QString::number(static_cast<int>(op), 16));
@@ -72,30 +73,18 @@ namespace mvp
 
   namespace constants
   {
-    const uchar firmware_subindex = 0x0C;
+    const uchar otp_section       =  0;
+    const uchar keys_section      =  2;
+    const uchar firmware_section  = 12;
     const uchar access_code[]     = { 0xCD, 0xAB };
     const uchar area_index_max    = 0x03;
 
     const size_t address_max      = 0xffffff;
-    const size_t sector_size      = 64 * 1024;
-    const size_t subsector_size   =  4 * 1024;
-    const size_t firmware_sectors = 51;
     const size_t page_size        = 256;
+    const size_t keys_offset      = 2048;
 
-    // 51 sectors * 64 * 1024 = 3342336
-    const size_t firmware_max_size = firmware_sectors * sector_size;
-
-    const QMap<uchar, size_t> section_max_sizes = {
-      {  0, 63 },
-      {  1, sector_size },
-      {  2, sector_size },
-      {  3, sector_size * 8 },
-      {  8, subsector_size },
-      {  9, sector_size },
-      { 10, sector_size },
-      { 11, sector_size * 6 },
-      { 12, firmware_max_size }
-    };
+    const QSet<uchar> valid_sections = {{0, 1, 2, 3, 8, 9, 10, 11, 12}};
+    const QSet<uchar> non_area_specific_sections = {{0, 1, 2, 3}};
 
     const int default_timeout_ms =  3000;
     const int erase_timeout_ms   = 60000;
@@ -104,23 +93,41 @@ namespace mvp
     const int recover_timeout_ms =   100;
   } // ns constants
 
+  namespace keys
+  {
+    const size_t prefix_offset  = 0x00;
+    const size_t prefix_bytes   = 8;
+    const size_t sn_offset      = 0x08;
+    const size_t sn_bytes       = 4;
+    const size_t sw_offset      = 0x0c;
+    const size_t sw_bytes       = 2;
+    const size_t key_offset     = 0x10;
+    const size_t key_bytes      = 4;
+  } // ns keys
 
   inline bool is_valid_section(uchar section)
   {
-    return constants::section_max_sizes.contains(section);
+    return constants::valid_sections.contains(section);
   }
 
   inline QList<uchar> get_valid_sections()
   {
-    return constants::section_max_sizes.keys();
+    auto ret = constants::valid_sections.toList();
+    qSort(ret);
+    return ret;
   }
 
-  inline size_t get_section_max_size(uchar section)
+  inline bool is_non_area_specific_section(uchar section)
   {
     if (!is_valid_section(section))
       throw std::runtime_error("invalid section index");
 
-    return constants::section_max_sizes.value(section);
+    return constants::non_area_specific_sections.contains(section);
+  }
+
+  inline bool is_area_specific_section(uchar section)
+  {
+    return !is_non_area_specific_section(section);
   }
 
   class Address
@@ -128,7 +135,7 @@ namespace mvp
     public:
       Address() = default;
 
-      Address(uchar a0, uchar a1, uchar a2): _data({a0, a1, a2}) {}
+      Address(uchar a0, uchar a1, uchar a2): _data({{a0, a1, a2}}) {}
 
       Address(const Address &o): _data(o._data) {}
 
@@ -145,11 +152,11 @@ namespace mvp
         if (a > constants::address_max)
           throw std::out_of_range("address range exceeded");
 
-        _data = {
+        _data = {{
           gsl::narrow_cast<uchar>((a & 0x0000ff)),
           gsl::narrow_cast<uchar>((a & 0x00ff00) >> 8),
           gsl::narrow_cast<uchar>((a & 0xff0000) >> 16)
-        };
+        }};
       }
 
       uchar operator[](size_t idx) const
@@ -211,16 +218,23 @@ namespace mvp
         return *this;
       }
 
+      Address operator+(int n) const
+      {
+        Address a(*this);
+        a += n;
+        return a;
+      }
+
     private:
       std::array<uchar, 3> _data = {{0, 0, 0}};
   };
 
   QDebug operator<<(QDebug dbg, const Address &a);
 
-  class InstructionError: public std::runtime_error
+  class FlashInstructionError: public std::runtime_error
   {
     public:
-      InstructionError(const gsl::span<uchar> &instruction, const gsl::span<uchar> &response,
+      FlashInstructionError(const gsl::span<uchar> &instruction, const gsl::span<uchar> &response,
           const QString &message = QString("instruction error"))
         : std::runtime_error(message.toStdString())
         , m_instruction(span_to_qvector(instruction))
@@ -271,16 +285,16 @@ namespace mvp
       void set_verbose(bool verbose);
       void boot(uchar area_index);
       void enable_write();
-      virtual void erase_subindex(uchar index);
+      virtual void erase_section(uchar index);
       uchar read_hardware_id();
 
-      void write_page(const Address &address, uchar subindex,
+      void write_page(const Address &address, uchar section,
         const gsl::span<uchar> data, int timeout_ms = constants::data_timeout_ms);
 
-      void read_page(const Address &address, uchar subindex, gsl::span<uchar> dest,
+      void read_page(const Address &address, uchar section, gsl::span<uchar> dest,
         int timeout_ms = constants::data_timeout_ms);
 
-      QVector<uchar> read_page(const Address &address, uchar subindex, size_t len,
+      QVector<uchar> read_page(const Address &address, uchar section, size_t len,
         int timeout_ms = constants::data_timeout_ms);
 
       QVector<uchar> read_available(
@@ -369,6 +383,28 @@ namespace mvp
     uchar actual   = 0;
   };
 
+  class FlashVerificationError: public std::runtime_error
+  {
+    public:
+      FlashVerificationError(const VerifyResult &result,
+          const QString &message = QString("verification error"))
+        : std::runtime_error(message.toStdString())
+        , m_result(result)
+      {}
+
+      const VerifyResult &result() const { return m_result; }
+
+      const QString to_string() const
+      {
+        return QString("%1: %2")
+          .arg(what())
+          .arg(m_result.to_string());
+      }
+
+    private:
+      VerifyResult m_result;
+  };
+
   class Canceled: public std::runtime_error
   {
     public:
@@ -384,31 +420,28 @@ namespace mvp
       void progress_text_changed(const QString &);
 
     public:
+      static const size_t default_recover_tries = 3;
 
       using BasicFlash::BasicFlash;
 
-      void recover(size_t tries=10);
+      void recover(size_t tries=default_recover_tries);
       void ensure_clean_state();
 
-      void write_memory(const Address &start, uchar subindex,
+      void write_memory(const Address &start, uchar section,
         const gsl::span<uchar> data);
 
       typedef std::function<bool (
           const Address &, uchar, const gsl::span<uchar>)>
         EarlyReturnFun;
 
-      QVector<uchar> read_memory(const Address &start, uchar subindex,
+      QVector<uchar> read_memory(const Address &start, uchar section,
         size_t len, EarlyReturnFun f = nullptr);
 
-      VerifyResult verify_memory(const Address &start, uchar subindex,
+      VerifyResult verify_memory(const Address &start, uchar section,
         const gsl::span<uchar> data);
 
-      virtual void erase_subindex(uchar index);
-      void erase_firmware();
-      void write_firmware(const gsl::span<uchar> data);
-
-      VerifyResult verify_firmware(const gsl::span<uchar> data);
-      VerifyResult blankcheck_firmware();
+      virtual void erase_section(uchar index);
+      VerifyResult blankcheck_section(uchar section, size_t size);
   };
 
   size_t pad_to_page_size(QVector<uchar> &data);
