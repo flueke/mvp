@@ -93,6 +93,17 @@ namespace mvp
     const int recover_timeout_ms =   100;
   } // ns constants
 
+  namespace keys
+  {
+    const size_t prefix_offset  = 0x00;
+    const size_t prefix_bytes   = 8;
+    const size_t sn_offset      = 0x08;
+    const size_t sn_bytes       = 4;
+    const size_t sw_offset      = 0x0c;
+    const size_t sw_bytes       = 2;
+    const size_t key_offset     = 0x10;
+    const size_t key_bytes      = 4;
+  } // ns keys
 
   inline bool is_valid_section(uchar section)
   {
