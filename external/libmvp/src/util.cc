@@ -1,5 +1,4 @@
 #include "util.h"
-#include <QSerialPort>
 
 namespace mesytec
 {

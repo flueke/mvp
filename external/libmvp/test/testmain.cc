@@ -5,12 +5,15 @@
 
 int main(int argc, char *argv[])
 {
+  int ret = 0;
+
   {
     std::list<std::shared_ptr<QObject>> tests = {
       std::make_shared<TestQtExceptionPtr>(),
       std::make_shared<TestFlash>(),
       std::make_shared<TestFirmware>(),
-      std::make_shared<TestInstructionFile>()
+      std::make_shared<TestInstructionFile>(),
+      std::make_shared<TestInstructionInterpreter>()
     };
 
 #ifdef RUN_GUI_TESTS
@@ -24,9 +27,9 @@ int main(int argc, char *argv[])
 #endif // RUN_GUI_TESTS
 
     for (auto obj: tests) {
-      QTest::qExec(obj.get(), argc, argv);
+      ret |= QTest::qExec(obj.get(), argc, argv);
     }
   }
 
-  return 0;
+  return ret;
 }
