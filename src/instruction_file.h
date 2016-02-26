@@ -11,11 +11,26 @@ namespace mvp
 struct Instruction
 {
   enum class Type { text, binary };
-  typedef QVector<uchar> data_type;
+  typedef QVector<uchar> DataType;
+
+  Instruction() {}
+
+  Instruction(Type t, const Address &address, const DataType &data)
+    : type(t)
+    , address(address)
+    , data(data)
+  {}
+
   Type type;
   Address address;
-  data_type data;
+  DataType data;
+
+  QString to_string() const;
 };
+
+typedef QVector<Instruction> InstructionList;
+
+InstructionList parse_instruction_file(QTextStream &stream);
 
 class InstructionFileParseError: public std::runtime_error
 {
@@ -45,8 +60,6 @@ class InstructionFileParseError: public std::runtime_error
     QString m_line;
     QString m_message;
 };
-
-QVector<Instruction> parse_instruction_file(QTextStream &stream);
 
 } // ns mvp
 } // ns mesytec

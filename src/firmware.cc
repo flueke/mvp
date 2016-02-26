@@ -4,11 +4,37 @@
 #include <quazip/quazip.h>
 #include <quazip/quazipfile.h>
 
+namespace
+{
+
+std::runtime_error make_zip_error(const QString &msg, const QuaZip &zip)
+{
+  auto m = QString("archive: %1 (error=%2)")
+    .arg(msg)
+    .arg(zip.getZipError());
+
+  return std::runtime_error(m.toStdString());
+}
+
+boost::optional<uchar> convert_to_uchar(const QString &str)
+{
+  bool ok = false;
+  auto n  = str.toUInt(&ok, 10);
+
+  if (!ok)
+    return boost::none;
+
+  return static_cast<uchar>(n);
+}
+
+} // anon ns
+
 namespace mesytec
 {
 namespace mvp
 {
 
+#if 0
 bool Firmware::has_section(uchar section) const
 {
   if (!is_valid_section(section))
@@ -46,16 +72,62 @@ bool Firmware::has_required_sections() const
   return get_present_section_numbers().size() > 0;
 }
 
-std::runtime_error make_zip_error(const QString &msg, const QuaZip &zip)
-{
-  auto m = QString("archive: %1 (error=%2)")
-    .arg(msg)
-    .arg(zip.getZipError());
+#endif
 
-  return std::runtime_error(m.toStdString());
+FirmwarePartList FirmwareArchive::get_area_specific_parts() const
+{
+  FirmwarePartList ret;
+
+  std::copy_if(std::begin(m_parts), std::end(m_parts),
+      std::back_inserter(ret),
+      [](const FirmwarePartPtr &pp) {
+        return !is_key_part(pp)
+          && pp->has_section()
+          && is_area_specific_section(*pp->get_section());
+      });
+
+  return ret;
 }
 
-static const QString section_filename_pattern = QStringLiteral("^(\\d+).*$");
+FirmwarePartList FirmwareArchive::get_non_area_specific_parts() const
+{
+  FirmwarePartList ret;
+
+  std::copy_if(std::begin(m_parts), std::end(m_parts),
+      std::back_inserter(ret),
+      [](const FirmwarePartPtr &pp) {
+        return !is_key_part(pp)
+          && pp->has_section()
+          && is_non_area_specific_section(*pp->get_section());
+      });
+
+  return ret;
+}
+
+FirmwarePartList FirmwareArchive::get_key_parts() const
+{
+  FirmwarePartList ret;
+
+  std::copy_if(std::begin(m_parts), std::end(m_parts),
+      std::back_inserter(ret),
+      [](const FirmwarePartPtr &pp) {
+        return is_key_part(pp);
+      });
+
+  return ret;
+}
+
+InstructionList InstructionFirmwarePart::get_instructions() const
+{
+  auto contents = get_contents();
+
+  auto data = QByteArray::fromRawData(
+      reinterpret_cast<const char *>(contents.constData()),
+      contents.size());
+
+  QTextStream stream(data);
+  return parse_instruction_file(stream);
+}
 
 class DirFirmwareFile: public FirmwareContentsFile
 {
@@ -67,7 +139,7 @@ class DirFirmwareFile: public FirmwareContentsFile
     QString get_filename() const override
     { return m_fi.fileName();}
 
-    QVector<uchar> read_file_contents() override
+    QVector<uchar> get_file_contents() override
     {
       QFile file(m_fi.filePath());
 
@@ -96,7 +168,7 @@ class ZipFirmwareFile: public FirmwareContentsFile
     QString get_filename() const override
     { return m_zip->getCurrentFileName(); }
 
-    QVector<uchar> read_file_contents() override
+    QVector<uchar> get_file_contents() override
     {
       QuaZipFile file(m_zip);
 
@@ -115,25 +187,86 @@ class ZipFirmwareFile: public FirmwareContentsFile
     QuaZip *m_zip;
 };
 
-Firmware from_firmware_file_generator(FirmwareContentsFileGenerator &gen)
+static const QVector<QRegularExpression> filename_regexps = {
+  QRegularExpression(R"(^(?<section>\d+)_(?<area>\d+).+\.(?<extension>bin|hex)$)"),
+  QRegularExpression(R"(^(?<section>\d+)[^0-9]+.*\.(?<extension>bin|hex)$)"),
+  QRegularExpression(R"(^.+\.(?<extension>key)$)")
+};
+
+FirmwareArchive from_firmware_file_generator(FirmwareContentsFileGenerator &gen,
+    const QString &archive_filename)
 {
+  FirmwareArchive ret(archive_filename);
+
+  while (auto fw_file = gen()) {
+    const auto fn = fw_file->get_filename();
+
+    QRegularExpressionMatch match;
+
+    for (auto re: filename_regexps) {
+      match = re.match(fn);
+
+      if (match.hasMatch()) {
+        qDebug() << "re match found: fn =" << fn << ", re =" << re;
+        break;
+      }
+    }
+
+    if (!match.hasMatch()) {
+      qDebug() << "no regexp match for fn =" << fn << ", skipping";
+      continue;
+    }
+
+    const auto s_section  = match.captured("section");
+    const auto s_area     = match.captured("area");
+    const auto ext        = match.captured("extension");
+
+    qDebug()
+      << "fn =" << fn << ":"
+      << "section =" << s_section
+      << ", area =" << s_area
+      << ", ext =" << ext;
+
+    FirmwarePartPtr part;
+
+    if (ext == "key") {
+      part = std::make_shared<KeyFirmwarePart>(fn);
+    } else if (ext == "bin") {
+      part = std::make_shared<BinaryFirmwarePart>(fn);
+    } else if (ext == "hex") {
+      part = std::make_shared<InstructionFirmwarePart>(fn);
+    } else {
+      qDebug() << "skipping unknown file type, fn =" << fn;
+    }
+
+    if (part) {
+      part->set_contents(fw_file->get_file_contents());
+      part->set_section(convert_to_uchar(s_section));
+      part->set_area(convert_to_uchar(s_area));
+      ret.add_part(part);
+    }
+  }
+
+  return ret;
+#if 0
   Firmware ret;
   QRegularExpression re(section_filename_pattern);
 
-  while (auto fw_file_ptr = gen()) {
-    auto match = re.match(fw_file_ptr->get_filename());
+  while (auto fw_file = gen()) {
+    auto match = re.match(fw_file->get_filename());
 
     if (!match.hasMatch())
       continue;
 
     const auto section = static_cast<uchar>(match.captured(1).toUInt());
-    ret.set_section(section, fw_file_ptr->read_file_contents());
+    ret.set_section(section, fw_file->get_file_contents());
   }
 
   if (ret.is_empty())
     throw std::runtime_error("No section contents found in firmware");
 
   return ret;
+#endif
 }
 
 class ZipFirmwareFileGenerator
@@ -173,7 +306,6 @@ class ZipFirmwareFileGenerator
     bool m_first_file = true;
 };
 
-
 class DirFirmwareFileGenerator
 {
   public:
@@ -207,7 +339,7 @@ class DirFirmwareFileGenerator
     std::shared_ptr<DirFirmwareFile> m_dir_fw_file;
 };
 
-Firmware from_zip(const QString &zip_filename)
+FirmwareArchive from_zip(const QString &zip_filename)
 {
   QuaZip zip(zip_filename);
 
@@ -216,13 +348,13 @@ Firmware from_zip(const QString &zip_filename)
 
   FirmwareContentsFileGenerator gen = ZipFirmwareFileGenerator(&zip);
 
-  return from_firmware_file_generator(gen);
+  return from_firmware_file_generator(gen, zip_filename);
 }
 
-Firmware from_dir(const QDir &dir)
+FirmwareArchive from_dir(const QDir &dir)
 {
   FirmwareContentsFileGenerator gen = DirFirmwareFileGenerator(dir);
-  return from_firmware_file_generator(gen);
+  return from_firmware_file_generator(gen, dir.path());
 }
 
 } // ns mvp

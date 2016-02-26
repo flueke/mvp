@@ -28,19 +28,29 @@ class TestFirmware: public QObject
 {
   Q_OBJECT
   private slots:
-    void test_basics();
-    void test_print_section_sizes();
     void test_from_firmware_file_generator_simple();
     void test_from_firmware_file_generator_empty();
-    void test_from_firmware_file_generator_duplicate_section();
-    void test_from_firmware_file_generator_section_size();
+    void test_filename_patterns();
+    void test_filename_patterns2();
+    void test_filename_patterns3();
+    void test_empty_bin_part();
 };
 
 class TestInstructionFile: public QObject
 {
   Q_OBJECT
   private slots:
-    void test();
+    void test_valid();
+    void test_invalid_binary();
+    void test_invalid_structure();
+};
+
+class TestInstructionInterpreter: public QObject
+{
+  Q_OBJECT
+  private slots:
+    void test_print();
+    void test_generate_memory();
 };
 
 #endif

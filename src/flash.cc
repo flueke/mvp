@@ -9,7 +9,12 @@ using constants::access_code;
 
 QDebug operator<<(QDebug dbg, const Address &a)
 {
-  dbg.nospace() << "A(a0=" << a[0] << ", a1=" << a[1] << ", a2=" << a[2] << ")";
+  dbg.nospace()
+    << "A(a0="  << a[0]
+    << ", a1="  << a[1]
+    << ", a2="  << a[2]
+    << ", int=" << a.to_int() << ", hex=" << QString::number(a.to_int(), 16)
+    << ")";
   return dbg.space();
 }
 
@@ -72,7 +77,7 @@ void BasicFlash::enable_write()
   qDebug() << "end enable_write: set write_enable flag";
 }
 
-void BasicFlash::erase_subindex(uchar index)
+void BasicFlash::erase_section(uchar index)
 {
   maybe_enable_write();
   m_wbuf = { opcodes::ERF, 0, 0, 0, index };
@@ -90,11 +95,11 @@ uchar BasicFlash::read_hardware_id()
   return m_rbuf[1];
 }
 
-void BasicFlash::write_page(const Address &addr, uchar subindex,
+void BasicFlash::write_page(const Address &addr, uchar section,
   const gsl::span<uchar> data, int timeout_ms)
 {
-  if (addr[0] != 0)
-    throw std::invalid_argument("write_page: address is not page aligned (a0!=0)");
+  //if (addr[0] != 0)
+  //  throw std::invalid_argument("write_page: address is not page aligned (a0!=0)");
 
   const auto sz = data.size();
 
@@ -104,21 +109,38 @@ void BasicFlash::write_page(const Address &addr, uchar subindex,
   if (sz > constants::page_size)
     throw std::invalid_argument("write_page: data size > page size");
 
-  maybe_set_verbose(false);
+  const bool use_verbose = false;
+
+  maybe_set_verbose(use_verbose);
   maybe_enable_write();
 
   uchar len_byte(sz == constants::page_size ? 0 : sz); // 256 encoded as 0
-  m_wbuf = { opcodes::WRF, addr[0], addr[1], addr[2], subindex, len_byte };
+  m_wbuf = { opcodes::WRF, addr[0], addr[1], addr[2], section, len_byte };
+
+  //qDebug() << "WRF: addr=" << addr << ", si =" << section << ", len =" << len_byte;
 
   write_instruction(m_wbuf);
   write(data, timeout_ms);
+
+  //qDebug() << "WRF data written:" << span_to_qvector(data);
+
+  if (use_verbose) {
+    try {
+      //QVector<uchar> rbuf(use_verbose ? 4 + data.size() : 4);
+      //read(gsl::as_span(rbuf));
+      auto rbuf = read_available();
+      qDebug() << "write_page: try read yielded" << rbuf;
+    } catch (const std::exception &e) {
+      qDebug() << "write_page: try read raised" << e.what();
+    }
+  }
 }
 
-void BasicFlash::read_page(const Address &addr, uchar subindex,
+void BasicFlash::read_page(const Address &addr, uchar section,
   gsl::span<uchar> dest, int timeout_ms)
 {
-  if (addr[0] != 0)
-    throw std::invalid_argument("read_page: address is not page aligned (a0!=0)");
+  //if (addr[0] != 0)
+  //  throw std::invalid_argument("read_page: address is not page aligned (a0!=0)");
 
   auto len = dest.size();
 
@@ -132,16 +154,16 @@ void BasicFlash::read_page(const Address &addr, uchar subindex,
 
   uchar len_byte(len == constants::page_size ? 0 : len); // 256 encoded as 0
 
-  m_wbuf = { opcodes::REF, addr[0], addr[1], addr[2], subindex, len_byte };
+  m_wbuf = { opcodes::REF, addr[0], addr[1], addr[2], section, len_byte };
   write_instruction(m_wbuf);
   read(dest, timeout_ms);
 }
 
-QVector<uchar> BasicFlash::read_page(const Address &addr, uchar subindex,
+QVector<uchar> BasicFlash::read_page(const Address &addr, uchar section,
   size_t len, int timeout_ms)
 {
   QVector<uchar> ret(len);
-  read_page(addr, subindex, gsl::as_span(ret), timeout_ms);
+  read_page(addr, section, gsl::as_span(ret), timeout_ms);
   return ret;
 }
 
@@ -154,9 +176,11 @@ void BasicFlash::write_instruction(const gsl::span<uchar> data, int timeout_ms)
   if (opcode != opcodes::WRF && m_write_enabled) {
     // any instruction except WRF (and EFW) unsets write enable
     qDebug() << "clearing cached write_enable flag (instruction ="
-      << op_to_string(opcode) << " != WRF)";
+      << op_to_string(opcode) << "!= WRF)";
     m_write_enabled = false;
   }
+
+  //qDebug() << "instruction written:" << format_bytes(span_to_qvector(data));
 
   emit instruction_written(span_to_qvector(data));
 }
@@ -220,6 +244,10 @@ QVector<uchar> BasicFlash::read_available(int timeout_ms)
   if (res != ret.size())
     throw make_com_error(m_port);
 
+  if (m_port->bytesAvailable()) {
+    qDebug() << "read_available: there are still" << m_port->bytesAvailable() << " bytes available";
+  }
+
   return ret;
 }
 
@@ -228,12 +256,12 @@ void BasicFlash::ensure_response_ok(
   const gsl::span<uchar> &response)
 {
   if (response.size() < 2) {
-    throw InstructionError(instruction, response, "short response (size<2)");
+    throw FlashInstructionError(instruction, response, "short response (size<2)");
   }
 
   if (!std::equal(std::begin(instruction), std::end(instruction),
         std::begin(response))) {
-    throw InstructionError(instruction, response,
+    throw FlashInstructionError(instruction, response,
       "response contents do not equal instruction contents");
   }
 
@@ -245,7 +273,7 @@ void BasicFlash::ensure_response_ok(
     ensure_response_code_ok(response_code);
   } catch (const std::runtime_error &e) {
     m_write_enabled = false; // write enable is unset on error
-    throw InstructionError(instruction, response, e.what());
+    throw FlashInstructionError(instruction, response, e.what());
   }
 }
 
@@ -269,8 +297,8 @@ void Flash::recover(size_t tries)
 
   for (size_t n=0; n<tries; ++n) {
     try {
-      qDebug() << "recover(): read_available()";
-      read_available(constants::recover_timeout_ms);
+      auto data = read_available(constants::recover_timeout_ms);
+      qDebug() << "recover(): read_available():" << format_bytes(data);
     } catch (const ComError &e) {
       qDebug() << "ignoring ComError from read_available()";
     }
@@ -298,7 +326,7 @@ void Flash::ensure_clean_state()
   qDebug() << "end ensure_clean_state";
 }
 
-void Flash::write_memory(const Address &start, uchar subindex, const gsl::span<uchar> data)
+void Flash::write_memory(const Address &start, uchar section, const gsl::span<uchar> data)
 {
   Address addr(start);
   size_t remaining = data.size();
@@ -310,7 +338,7 @@ void Flash::write_memory(const Address &start, uchar subindex, const gsl::span<u
   while (remaining) {
     emit progress_changed(progress++);
     auto len = std::min(constants::page_size, remaining);
-    write_page(addr, subindex, gsl::as_span(data.data() + offset, len));
+    write_page(addr, section, gsl::as_span(data.data() + offset, len));
 
     remaining -= len;
     addr      += len;
@@ -318,11 +346,11 @@ void Flash::write_memory(const Address &start, uchar subindex, const gsl::span<u
   }
 }
 
-QVector<uchar> Flash::read_memory(const Address &start, uchar subindex,
+QVector<uchar> Flash::read_memory(const Address &start, uchar section,
   size_t len, EarlyReturnFun early_return_fun)
 {
   qDebug() << "read_memory: start =" << start
-           << ", si =" << subindex
+           << ", si =" << section
            << ", len =" << len
            << ", early return function set =" << bool(early_return_fun);
 
@@ -342,11 +370,11 @@ QVector<uchar> Flash::read_memory(const Address &start, uchar subindex,
 
     auto rl = std::min(constants::page_size, remaining);
     auto page_span = gsl::as_span(ret.data() + offset, rl);
-    read_page(addr, subindex, page_span);
+    read_page(addr, section, page_span);
 
     offset    += rl;
 
-    if (early_return_fun && early_return_fun(addr, subindex, page_span)) {
+    if (early_return_fun && early_return_fun(addr, section, page_span)) {
       ret.resize(offset);
       return ret;
     }
@@ -358,7 +386,7 @@ QVector<uchar> Flash::read_memory(const Address &start, uchar subindex,
   return ret;
 }
 
-VerifyResult Flash::verify_memory(const Address &start, uchar subindex, const gsl::span<uchar> data)
+VerifyResult Flash::verify_memory(const Address &start, uchar section, const gsl::span<uchar> data)
 {
   set_verbose(false);
 
@@ -367,7 +395,7 @@ VerifyResult Flash::verify_memory(const Address &start, uchar subindex, const gs
     return res.first != page.end();
   };
 
-  auto mem = read_memory(start, subindex, data.size(), fun);
+  auto mem = read_memory(start, section, data.size(), fun);
   auto res = std::mismatch(mem.begin(), mem.end(), data.begin());
 
   if (res.first == mem.end())
@@ -376,39 +404,17 @@ VerifyResult Flash::verify_memory(const Address &start, uchar subindex, const gs
   return VerifyResult(res.second - data.begin(), *res.second, *res.first);
 }
 
-void Flash::erase_subindex(uchar index)
+void Flash::erase_section(uchar index)
 {
   emit progress_range_changed(0, 0);
-  BasicFlash::erase_subindex(index);
+  BasicFlash::erase_section(index);
 }
 
-void Flash::erase_firmware()
+VerifyResult Flash::blankcheck_section(uchar section, size_t size)
 {
-  emit progress_text_changed("Erasing firmware");
-  erase_subindex(constants::firmware_subindex);
-}
-
-void Flash::write_firmware(const gsl::span<uchar> data)
-{
-  emit progress_text_changed("Writing firmware");
-  set_verbose(false);
-  write_memory({0, 0, 0}, constants::firmware_subindex, data);
-}
-
-VerifyResult Flash::verify_firmware(const gsl::span<uchar> data)
-{
-  emit progress_text_changed("Verifying firmware");
-  set_verbose(false);
-  auto ret = verify_memory({0, 0, 0}, constants::firmware_subindex, data);
-
-  emit progress_text_changed(QString("Verify firmware: %1").arg(ret.to_string()));
-
-  return ret;
-}
-
-VerifyResult Flash::blankcheck_firmware()
-{
-  emit progress_text_changed("Blankcheck");
+  emit progress_text_changed(QString("Blankchecking section %1 (sz=%2)")
+      .arg(static_cast<int>(section))
+      .arg(size));
 
   set_verbose(false);
 
@@ -417,13 +423,13 @@ VerifyResult Flash::blankcheck_firmware()
     return it != page.end();
   };
 
-  auto mem = read_memory({0, 0, 0}, constants::firmware_subindex,
-    constants::firmware_max_size, fun);
-
+  auto mem = read_memory({0, 0, 0}, section, size, fun);
   auto it  = std::find_if(mem.begin(), mem.end(), [](uchar c) { return c != 0xff; });
   auto ret = (it == mem.end() ? VerifyResult() : VerifyResult(it - mem.begin(), 0xff, *it));
 
-  emit progress_text_changed(QString("Blankcheck: %1").arg(ret.to_string()));
+  emit progress_text_changed(QString("Blankcheck result for section %1: %2")
+      .arg(static_cast<int>(section))
+      .arg(ret.to_string()));
 
   return ret;
 }
