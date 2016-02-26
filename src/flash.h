@@ -8,8 +8,6 @@
 #include "util.h"
 #include "libmvp_export.h"
 
-// FIXME: section == section...!
-
 namespace mesytec
 {
 namespace mvp
@@ -75,20 +73,15 @@ namespace mvp
 
   namespace constants
   {
-    const uchar otp_section      =  0;
-    const uchar keys_section     =  2;
-    const uchar firmware_section = 12;
+    const uchar otp_section       =  0;
+    const uchar keys_section      =  2;
+    const uchar firmware_section  = 12;
     const uchar access_code[]     = { 0xCD, 0xAB };
     const uchar area_index_max    = 0x03;
 
     const size_t address_max      = 0xffffff;
-    const size_t sector_size      = 64 * 1024;
-    const size_t subsector_size   =  4 * 1024;
-    const size_t firmware_sectors = 51;
     const size_t page_size        = 256;
-
-    // 51 sectors * 64 * 1024 = 3342336
-    const size_t firmware_max_size = firmware_sectors * sector_size;
+    const size_t keys_offset      = 2048;
 
     const QSet<uchar> valid_sections = {{0, 1, 2, 3, 8, 9, 10, 11, 12}};
     const QSet<uchar> non_area_specific_sections = {{0, 1, 2, 3}};
