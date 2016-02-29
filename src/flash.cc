@@ -1,4 +1,6 @@
 #include "flash.h"
+#include <boost/endian/conversion.hpp>
+#include <boost/format.hpp>
 
 namespace mesytec
 {
@@ -287,6 +289,51 @@ void BasicFlash::ensure_response_code_ok(const gsl::span<uchar> &response_code) 
 
   if (!(status::inst_success & (*(std::begin(response_code)+1))))
     throw std::runtime_error("instruction failed");
+}
+
+Key::Key(const std::string &prefix, uint32_t sn, uint16_t sw, uint32_t key)
+  : m_prefix(prefix)
+  , m_sn(sn)
+  , m_sw(sw)
+  , m_key(key)
+{
+  if (m_prefix.size() != keys::prefix_bytes)
+    throw KeyError("Invalid prefix size");
+}
+
+Key Key::from_flash_memory(const gsl::span<uchar> data)
+{
+  if (data.size() < keys::total_bytes)
+    throw KeyError("Key::from_flash_memory: given data is too short");
+
+  Key ret;
+
+  std::transform(
+      std::begin(data) + keys::prefix_offset,
+      std::begin(data) + keys::prefix_offset + keys::prefix_bytes,
+      std::back_inserter(ret.m_prefix),
+      [](uchar c) { return static_cast<char>(c); });
+
+  ret.m_sn  = boost::endian::big_to_native(*(reinterpret_cast<uint32_t *>(data.data() + keys::sn_offset)));
+  ret.m_sw  = boost::endian::big_to_native(*(reinterpret_cast<uint16_t *>(data.data() + keys::sw_offset)));
+  ret.m_key = boost::endian::big_to_native(*(reinterpret_cast<uint32_t *>(data.data() + keys::key_offset)));
+
+  return ret;
+}
+
+QString Key::to_string() const
+{
+  /*
+  return QString("Key(sn=%1%2, sw=%3, key=%4)")
+    .arg(QString::fromStdString(get_prefix()))
+    .arg(static_cast<ulong>(get_sn()), keys::sn_bytes*2, 16, '0')
+    .arg(static_cast<ulong>(get_sw()), keys::sw_bytes*2, 16, '0')
+    .arg(static_cast<ulong>(get_key()), keys::key_bytes*2, 16, '0');
+  */
+  auto fmt = boost::format("Key(sn=%|1$|%|2$08X|, sw=%|3$04X|, key=%|4$08X|)")
+    % get_prefix() % get_sn() % get_sw() % get_key();
+
+  return QString::fromStdString(fmt.str());
 }
 
 void Flash::recover(size_t tries)
