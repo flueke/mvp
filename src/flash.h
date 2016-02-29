@@ -103,6 +103,8 @@ namespace mvp
     const size_t sw_bytes       = 2;
     const size_t key_offset     = 0x10;
     const size_t key_bytes      = 4;
+
+    const size_t total_bytes    = key_offset + key_bytes;
   } // ns keys
 
   inline bool is_valid_section(uchar section)
@@ -422,14 +424,18 @@ namespace mvp
   class Key
   {
     public:
-      Key();
+      Key() {};
+      Key(const std::string &prefix, uint32_t sn, uint16_t sw, uint32_t key);
 
       std::string get_prefix() const { return m_prefix; }
       uint32_t get_sn() const { return m_sn; }
       uint16_t get_sw() const { return m_sw; }
       uint32_t get_key() const { return m_key; }
 
-      static Key from_data(const gsl::span<uchar> data);
+      QString to_string() const;
+
+      static Key from_flash_memory(const gsl::span<uchar> data);
+
     private:
       std::string m_prefix;
       uint32_t m_sn  = 0;

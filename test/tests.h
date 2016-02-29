@@ -8,6 +8,9 @@ class TestFlash: public QObject
   Q_OBJECT
   private slots:
     void test_address();
+    void test_key_from_flash_memory();
+    void test_key_constructor();
+    void test_key_to_string();
 };
 
 class TestQtExceptionPtr: public QObject
