@@ -323,13 +323,6 @@ Key Key::from_flash_memory(const gsl::span<uchar> data)
 
 QString Key::to_string() const
 {
-  /*
-  return QString("Key(sn=%1%2, sw=%3, key=%4)")
-    .arg(QString::fromStdString(get_prefix()))
-    .arg(static_cast<ulong>(get_sn()), keys::sn_bytes*2, 16, '0')
-    .arg(static_cast<ulong>(get_sw()), keys::sw_bytes*2, 16, '0')
-    .arg(static_cast<ulong>(get_key()), keys::key_bytes*2, 16, '0');
-  */
   auto fmt = boost::format("Key(sn=%|1$|%|2$08X|, sw=%|3$04X|, key=%|4$08X|)")
     % get_prefix() % get_sn() % get_sw() % get_key();
 
@@ -477,6 +470,27 @@ VerifyResult Flash::blankcheck_section(uchar section, size_t size)
   emit progress_text_changed(QString("Blankcheck result for section %1: %2")
       .arg(static_cast<int>(section))
       .arg(ret.to_string()));
+
+  return ret;
+}
+
+QVector<Key> Flash::read_keys()
+{
+  QVector<Key> ret;
+
+  for (size_t i=0; i<constants::max_keys; ++i) {
+
+    auto addr = Address(i * constants::keys_offset);
+    auto mem  = read_memory(addr, constants::keys_section, keys::total_bytes);
+    auto it   = std::find_if(mem.begin(), mem.end(), [](uchar c) { return c != 0xff; });
+
+    if (it == mem.end())
+      continue;
+
+    auto key = Key::from_flash_memory(mem);
+
+    ret.push_back(key);
+  }
 
   return ret;
 }
