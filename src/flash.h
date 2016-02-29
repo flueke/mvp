@@ -82,6 +82,7 @@ namespace mvp
     const size_t address_max      = 0xffffff;
     const size_t page_size        = 256;
     const size_t keys_offset      = 2048;
+    const size_t max_keys         = 16;
 
     const QSet<uchar> valid_sections = {{0, 1, 2, 3, 8, 9, 10, 11, 12}};
     const QSet<uchar> non_area_specific_sections = {{0, 1, 2, 3}};
@@ -474,6 +475,8 @@ namespace mvp
 
       virtual void erase_section(uchar index);
       VerifyResult blankcheck_section(uchar section, size_t size);
+
+      QVector<Key> read_keys();
   };
 
   size_t pad_to_page_size(QVector<uchar> &data);
