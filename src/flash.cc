@@ -474,9 +474,9 @@ VerifyResult Flash::blankcheck_section(uchar section, size_t size)
   return ret;
 }
 
-QVector<Key> Flash::read_keys()
+Flash::KeyMap Flash::read_keys()
 {
-  QVector<Key> ret;
+  KeyMap ret;
 
   for (size_t i=0; i<constants::max_keys; ++i) {
 
@@ -489,7 +489,7 @@ QVector<Key> Flash::read_keys()
 
     auto key = Key::from_flash_memory(mem);
 
-    ret.push_back(key);
+    ret.insert(i, key);
   }
 
   return ret;
