@@ -124,6 +124,8 @@ void BasicFlash::write_page(const Address &addr, uchar section,
   write_instruction(m_wbuf);
   write(data, timeout_ms);
 
+  emit data_written(span_to_qvector(data));
+
   //qDebug() << "WRF data written:" << span_to_qvector(data);
 
   if (use_verbose) {
@@ -329,6 +331,14 @@ QString Key::to_string() const
   return QString::fromStdString(fmt.str());
 }
 
+bool Key::operator==(const Key &o)
+{
+  return get_prefix() == o.get_prefix()
+    && get_sn() == o.get_sn()
+    && get_sw() == o.get_sw()
+    && get_key() == o.get_key();
+}
+
 void Flash::recover(size_t tries)
 {
   std::exception_ptr last_nop_exception;
@@ -489,7 +499,7 @@ Flash::KeyMap Flash::read_keys()
 
     auto key = Key::from_flash_memory(mem);
 
-    ret.insert(i, key);
+    ret[i] = key;
   }
 
   return ret;

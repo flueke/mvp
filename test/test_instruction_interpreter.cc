@@ -35,3 +35,21 @@ void TestInstructionInterpreter::test_generate_memory()
   QCOMPARE(mem[0x0c], static_cast<uchar>(0x00u));
   QCOMPARE(mem[0x0d], static_cast<uchar>(0x01u));
 }
+
+void TestInstructionInterpreter::test_generate_otp_like()
+{
+  {
+    QString contents = R"(@0x02
+%42
+)";
+
+    QTextStream stream(&contents, QIODevice::ReadOnly);
+    auto ilist = parse_instruction_file(stream);
+    auto mem   = generate_memory(ilist);
+
+    QCOMPARE(mem.size(), 3);
+    QCOMPARE(mem[0x00], static_cast<uchar>(0xff));
+    QCOMPARE(mem[0x01], static_cast<uchar>(0xff));
+    QCOMPARE(mem[0x02], static_cast<uchar>(0x42));
+  }
+}

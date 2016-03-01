@@ -267,6 +267,7 @@ namespace mvp
       void instruction_written(const QVector<uchar> &);
       void response_read(const QVector<uchar> &);
       void statusbyte_received(const uchar &);
+      void data_written(const QVector<uchar> &);
 
     public:
       BasicFlash(QObject *parent=nullptr)
@@ -435,6 +436,10 @@ namespace mvp
 
       QString to_string() const;
 
+      bool operator==(const Key &o);
+      bool operator!=(const Key &o)
+      { return !(*this == o); }
+
       static Key from_flash_memory(const gsl::span<uchar> data);
 
     private:
@@ -476,7 +481,7 @@ namespace mvp
       virtual void erase_section(uchar index);
       VerifyResult blankcheck_section(uchar section, size_t size);
 
-      typedef QMap<size_t, Key> KeyMap;
+      typedef std::map<size_t, Key> KeyMap;
 
       KeyMap read_keys();
   };
