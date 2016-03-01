@@ -476,7 +476,9 @@ namespace mvp
       virtual void erase_section(uchar index);
       VerifyResult blankcheck_section(uchar section, size_t size);
 
-      QVector<Key> read_keys();
+      typedef QMap<size_t, Key> KeyMap;
+
+      KeyMap read_keys();
   };
 
   size_t pad_to_page_size(QVector<uchar> &data);
