@@ -98,7 +98,7 @@ void TestFlash::test_key_from_flash_memory()
 
     Key key = Key::from_flash_memory(gsl::as_span(data));
 
-    QCOMPARE(key.get_prefix(), std::string("MDPP16  "));
+    QCOMPARE(key.get_prefix(), QString("MDPP16  "));
     QCOMPARE(key.get_sn(),  0x11121314u);
     QCOMPARE(key.get_sw(),  static_cast<uint16_t>(0x1516u));
     QCOMPARE(key.get_key(), 0x23242526u);
@@ -114,7 +114,7 @@ void TestFlash::test_key_from_flash_memory()
 
     Key key = Key::from_flash_memory(gsl::as_span(data));
 
-    QCOMPARE(key.get_prefix(), std::string("MDPP16  "));
+    QCOMPARE(key.get_prefix(), QString("MDPP16  "));
     QCOMPARE(key.get_sn(),  0x11121314u);
     QCOMPARE(key.get_sw(),  static_cast<uint16_t>(0x1516u));
     QCOMPARE(key.get_key(), 0x23242526u);
@@ -141,7 +141,7 @@ void TestFlash::test_key_constructor()
   {
     Key k("ABCDEFGH", 1u, 1u, 0xffffffffu);
 
-    QCOMPARE(k.get_prefix(), std::string("ABCDEFGH"));
+    QCOMPARE(k.get_prefix(), QString("ABCDEFGH"));
     QCOMPARE(k.get_sn(), 1u);
     QCOMPARE(k.get_sw(), static_cast<uint16_t>(1u));
     QCOMPARE(k.get_key(), 0xffffffffu);

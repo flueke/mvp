@@ -19,7 +19,6 @@ void FirmwareWriter::write()
 {
   auto non_area_specific_parts = m_firmware.get_non_area_specific_parts();
   auto area_specific_parts = m_firmware.get_area_specific_parts();
-  auto key_parts = m_firmware.get_key_parts();
   const auto selected_area = m_flash->read_area_index();
 
   m_flash->set_verbose(false);
@@ -35,12 +34,6 @@ void FirmwareWriter::write()
   for (auto pp: area_specific_parts) {
     auto area = pp->has_area() ? *pp->get_area() : selected_area;
     write_part(pp, *pp->get_section(), area);
-  }
-
-  emit status_message("Handling key parts...");
-
-  for (auto pp: key_parts) {
-    write_part(pp, constants::keys_section);
   }
 
   emit status_message(QString("Restoring area index to %1")
@@ -95,8 +88,7 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
       auto res = m_flash->verify_memory({0, 0, 0}, section, gsl::as_span(contents));
       if (!res) throw FlashVerificationError(res);
     }
-  } else if (is_instruction_part(pp)) {
-    // FIXME: this also handles KeyFirmwareParts!
+  } else if (is_instruction_part(pp) && !is_key_part(pp)) {
 
     auto instructions = std::dynamic_pointer_cast<InstructionFirmwarePart>(pp)
       ->get_instructions();

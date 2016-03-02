@@ -18,10 +18,10 @@ class FirmwareWriter: public QObject
     void status_message(const QString &);
 
   public:
-    FirmwareWriter(const FirmwareArchive &firmware = FirmwareArchive(),
-        PortHelper *port_helper = nullptr,
-        Flash *flash = nullptr,
-        QObject *parent= nullptr);
+    FirmwareWriter(const FirmwareArchive &firmware,
+        PortHelper *port_helper,
+        Flash *flash,
+        QObject *parent = nullptr);
 
     void write();
 
@@ -39,8 +39,8 @@ class FirmwareWriter: public QObject
         const boost::optional<uchar> &area = boost::none);
 
     FirmwareArchive m_firmware;
-    PortHelper *m_port_helper;
-    Flash *m_flash;
+    PortHelper *m_port_helper = nullptr;
+    Flash *m_flash = nullptr;
 
     bool m_do_erase = true;
     bool m_do_program = true;
