@@ -10,10 +10,22 @@ namespace mvp
 static PortInfoProvider default_portinfo_provider = [] {
   auto ports(QSerialPortInfo::availablePorts());
 
-#if 0
   ports.erase(std::remove_if(ports.begin(), ports.end(), [](const QSerialPortInfo &info) {
-          return info.manufacturer() != "FTDI" || info.serialNumber().isEmpty();
+          return !info.description().startsWith("mvp");
         }), ports.end());
+
+#if 0
+  for (const auto &port: ports) {
+    qDebug()
+      << "port name" << port.portName()
+      << "system location" << port.systemLocation()
+      << "manufacturer" << port.manufacturer()
+      << "serial number" << port.serialNumber()
+      << "product identifier" << port.productIdentifier()
+      << "vendor identifier" << port.vendorIdentifier()
+      << "description" << port.description()
+      ;
+  }
 #endif
 
   return ports;
