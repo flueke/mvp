@@ -367,7 +367,7 @@ OTP OTP::from_flash_memory(const gsl::span<uchar> data)
 
 QString OTP::to_string() const
 {
-  auto fmt = boost::format("OTP(dev=%|1$|, sn=%|2$08X|")
+  auto fmt = boost::format("OTP(dev=%|1$|, sn=%|2$08X|)")
     % get_device().toStdString() % get_sn();
 
   return QString::fromStdString(fmt.str());
@@ -518,7 +518,7 @@ VerifyResult Flash::blankcheck_section(uchar section, size_t size)
   return ret;
 }
 
-Flash::KeyMap Flash::read_keys()
+KeyMap Flash::read_keys()
 {
   KeyMap ret;
 
@@ -557,7 +557,7 @@ QSet<size_t> Flash::get_free_key_slots()
   return all_slots.subtract(used);
 }
 
-OTP Flash::read_device_info()
+OTP Flash::read_otp()
 {
   auto mem = read_memory({0, 0, 0}, constants::otp_section, otp::total_bytes);
 

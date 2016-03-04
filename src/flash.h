@@ -259,6 +259,8 @@ namespace mvp
       && key.get_sn() == otp.get_sn();
   }
 
+  typedef QMap<size_t, Key> KeyMap;
+
   class Flash: public BasicFlash
   {
     Q_OBJECT
@@ -291,13 +293,11 @@ namespace mvp
       virtual void erase_section(uchar index);
       VerifyResult blankcheck_section(uchar section, size_t size);
 
-      typedef QMap<size_t, Key> KeyMap;
-
       KeyMap read_keys();
       QSet<size_t> get_used_key_slots();
       QSet<size_t> get_free_key_slots();
 
-      OTP read_device_info();
+      OTP read_otp();
   };
 
   size_t pad_to_page_size(QVector<uchar> &data);

@@ -142,5 +142,67 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
   }
 }
 
+KeysInfo::KeysInfo(
+    const OTP &otp,
+    const KeyMap &device_keys,
+    const KeyList &firmware_keys)
+  : m_otp(otp)
+  , m_device_keys(device_keys)
+{
+  std::copy_if(std::begin(firmware_keys), std::end(firmware_keys),
+      std::back_inserter(m_firmware_keys),
+      [&](const Key &key) {
+      //return true;
+      return key_matches_otp(key, otp);
+      });
+}
+
+bool KeysInfo::need_to_erase() const
+{
+  throw std::runtime_error("not implemented");
+}
+
+KeyList KeysInfo::get_new_firmware_keys() const
+{
+  return KeyList();
+}
+
+KeysHandler::KeysHandler(
+    const FirmwareArchive &firmware,
+    gsl::not_null<PortHelper *> port_helper,
+    gsl::not_null<Flash *> flash,
+    QObject *parent)
+  : m_firmware(firmware)
+  , m_port_helper(port_helper)
+  , m_flash(flash)
+{
+}
+
+KeysInfo KeysHandler::get_keys_info()
+{
+  KeyList fw_keys;
+
+  auto key_parts = m_firmware.get_key_parts();
+
+  for (const auto &key_part: key_parts) {
+    auto instructions = std::dynamic_pointer_cast<KeyFirmwarePart>(key_part)
+      ->get_instructions();
+
+    auto mem = generate_memory(instructions);
+
+    fw_keys.push_back(Key::from_flash_memory(mem));
+  }
+
+  const auto otp      = m_flash->read_otp();
+  const auto dev_keys = m_flash->read_keys();
+
+  return KeysInfo(otp, dev_keys, fw_keys);
+}
+
+void KeysHandler::write_keys()
+{
+  throw std::runtime_error("not implemented");
+}
+
 } // ns mvp
 } // ns mesytec

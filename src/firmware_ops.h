@@ -47,6 +47,57 @@ class FirmwareWriter: public QObject
     bool m_do_verify = false;
 };
 
+typedef QList<Key> KeyList;
+
+class KeysInfo
+{
+  public:
+    KeysInfo() {}
+    KeysInfo(const OTP &otp, const KeyMap &device_keys, const KeyList &firmware_keys);
+
+    /** True if erasing is needed to store the keys contained in the firmware
+     * archive. */
+    bool need_to_erase() const;
+
+    /* Returns the list of keys contained in the firmware archive matching the
+     * OTP info. */
+    KeyList get_firmware_keys() const { return m_firmware_keys; }
+
+    /* Returns a list of keys contained in the firmware archive and not present
+     * on the device. */
+    KeyList get_new_firmware_keys() const;
+
+    /* Returns the slot -> key mapping of keys present on the device. */
+    KeyMap  get_device_keys() const { return m_device_keys; }
+
+    /* Get the devices OTP info. */
+    OTP get_otp() const { return m_otp; }
+
+  private:
+    OTP m_otp;
+    KeyList m_firmware_keys;
+    KeyMap m_device_keys;
+};
+
+class KeysHandler: public QObject
+{
+  Q_OBJECT
+  public:
+    KeysHandler(
+        const FirmwareArchive &firmware,
+        gsl::not_null<PortHelper *> port_helper,
+        gsl::not_null<Flash *> flash,
+        QObject *parent = nullptr);
+
+    KeysInfo get_keys_info();
+    void write_keys();
+
+  private:
+    FirmwareArchive m_firmware;
+    PortHelper *m_port_helper = nullptr;
+    Flash *m_flash = nullptr;
+};
+
 } // ns mvp
 } // ns mesytec
 
