@@ -214,8 +214,8 @@ namespace mvp
 
       QString to_string() const;
 
-      bool operator==(const Key &o);
-      bool operator!=(const Key &o)
+      bool operator==(const Key &o) const;
+      bool operator!=(const Key &o) const
       { return !(*this == o); }
 
       static Key from_flash_memory(const gsl::span<uchar> data);
@@ -245,6 +245,7 @@ namespace mvp
       uint32_t get_sn() const { return m_sn; }
 
       QString to_string() const;
+      bool is_valid() const { return !m_device.isEmpty(); }
 
       static OTP from_flash_memory(const gsl::span<uchar> data);
 
