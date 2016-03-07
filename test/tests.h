@@ -57,4 +57,11 @@ class TestInstructionInterpreter: public QObject
     void test_generate_otp_like();
 };
 
+class TestFirmwareOps: public QObject
+{
+  Q_OBJECT
+  private slots:
+    void test_keysinfo();
+};
+
 #endif

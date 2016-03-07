@@ -331,7 +331,7 @@ QString Key::to_string() const
   return QString::fromStdString(fmt.str());
 }
 
-bool Key::operator==(const Key &o)
+bool Key::operator==(const Key &o) const
 {
   return get_prefix() == o.get_prefix()
     && get_sn() == o.get_sn()
@@ -344,7 +344,7 @@ OTP::OTP(const QString &device, uint32_t sn)
   , m_sn(sn)
 {
   if (m_device.size() != otp::device_bytes)
-    throw OTPError("Invalid device name size");
+    throw OTPError("Invalid device name length");
 }
 
 OTP OTP::from_flash_memory(const gsl::span<uchar> data)

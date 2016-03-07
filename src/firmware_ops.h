@@ -73,6 +73,8 @@ class KeysInfo
     /* Get the devices OTP info. */
     OTP get_otp() const { return m_otp; }
 
+    bool is_valid() const { return m_otp.is_valid(); }
+
   private:
     OTP m_otp;
     KeyList m_firmware_keys;
@@ -82,6 +84,9 @@ class KeysInfo
 class KeysHandler: public QObject
 {
   Q_OBJECT
+  signals:
+    void status_message(const QString &);
+
   public:
     KeysHandler(
         const FirmwareArchive &firmware,
@@ -90,13 +95,18 @@ class KeysHandler: public QObject
         QObject *parent = nullptr);
 
     KeysInfo get_keys_info();
+    FirmwarePartList get_key_parts_to_write();
     void write_keys();
 
   private:
     FirmwareArchive m_firmware;
     PortHelper *m_port_helper = nullptr;
     Flash *m_flash = nullptr;
+    bool m_keys_info_read = false;
+    KeysInfo m_keys_info;
 };
+
+Key key_from_firmware_part(const FirmwarePart &part);
 
 } // ns mvp
 } // ns mesytec
