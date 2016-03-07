@@ -258,7 +258,7 @@ void KeysHandler::write_keys()
 
   qSort(free_slots);
 
-  qDebug() << "write_keys: free slot =" << free_slots;
+  qDebug() << "write_keys: free slots =" << free_slots;
 
   auto it_slots = std::begin(free_slots);
   auto it_parts = std::begin(key_parts);
