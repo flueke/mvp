@@ -60,9 +60,9 @@ void PortHelper::set_selected_port_name(const QString &name)
 
 void PortHelper::open_port()
 {
-  qDebug() << "open_port(): begin";
+  qDebug() << "open_port(): begin" << m_selected_port_info.portName();
 
-  if (m_selected_port_info.isNull())
+  if (m_selected_port_info.isNull() || m_selected_port_info.portName().isEmpty())
     throw std::runtime_error("No serial port selected");
 
   auto info   = QSerialPortInfo(m_selected_port_info.portName());
