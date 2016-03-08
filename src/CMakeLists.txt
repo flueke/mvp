@@ -16,12 +16,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
 set(LIBMVP_SOURCES
     file_dialog.cc
-    flash.cc
-    flash_widget.cc
     firmware.cc
     firmware_ops.cc
+    flash.cc
+    flash_widget.cc
     instruction_file.cc
     instruction_interpreter.cc
+    mdpp16.cc
     port_helper.cc
     util.cc
     )
