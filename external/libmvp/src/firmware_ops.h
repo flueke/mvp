@@ -18,10 +18,10 @@ class FirmwareWriter: public QObject
     void status_message(const QString &);
 
   public:
-    FirmwareWriter(const FirmwareArchive &firmware = FirmwareArchive(),
-        PortHelper *port_helper = nullptr,
-        Flash *flash = nullptr,
-        QObject *parent= nullptr);
+    FirmwareWriter(const FirmwareArchive &firmware,
+        PortHelper *port_helper,
+        Flash *flash,
+        QObject *parent = nullptr);
 
     void write();
 
@@ -39,13 +39,74 @@ class FirmwareWriter: public QObject
         const boost::optional<uchar> &area = boost::none);
 
     FirmwareArchive m_firmware;
-    PortHelper *m_port_helper;
-    Flash *m_flash;
+    PortHelper *m_port_helper = nullptr;
+    Flash *m_flash = nullptr;
 
     bool m_do_erase = true;
     bool m_do_program = true;
     bool m_do_verify = false;
 };
+
+typedef QList<Key> KeyList;
+
+class KeysInfo
+{
+  public:
+    KeysInfo() {}
+    KeysInfo(const OTP &otp, const KeyMap &device_keys, const KeyList &firmware_keys);
+
+    /** True if erasing is needed to store the keys contained in the firmware
+     * archive. */
+    bool need_to_erase() const;
+
+    /* Returns the list of keys contained in the firmware archive matching the
+     * OTP info. */
+    KeyList get_firmware_keys() const { return m_firmware_keys; }
+
+    /* Returns a list of keys contained in the firmware archive and not present
+     * on the device. */
+    KeyList get_new_firmware_keys() const;
+
+    /* Returns the slot -> key mapping of keys present on the device. */
+    KeyMap  get_device_keys() const { return m_device_keys; }
+
+    /* Get the devices OTP info. */
+    OTP get_otp() const { return m_otp; }
+
+    bool is_valid() const { return m_otp.is_valid(); }
+
+  private:
+    OTP m_otp;
+    KeyList m_firmware_keys;
+    KeyMap m_device_keys;
+};
+
+class KeysHandler: public QObject
+{
+  Q_OBJECT
+  signals:
+    void status_message(const QString &);
+
+  public:
+    KeysHandler(
+        const FirmwareArchive &firmware,
+        gsl::not_null<PortHelper *> port_helper,
+        gsl::not_null<Flash *> flash,
+        QObject *parent = nullptr);
+
+    KeysInfo get_keys_info();
+    FirmwarePartList get_key_parts_to_write();
+    void write_keys();
+
+  private:
+    FirmwareArchive m_firmware;
+    PortHelper *m_port_helper = nullptr;
+    Flash *m_flash = nullptr;
+    bool m_keys_info_read = false;
+    KeysInfo m_keys_info;
+};
+
+Key key_from_firmware_part(const FirmwarePart &part);
 
 } // ns mvp
 } // ns mesytec

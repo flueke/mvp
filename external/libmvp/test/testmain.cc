@@ -13,7 +13,8 @@ int main(int argc, char *argv[])
       std::make_shared<TestFlash>(),
       std::make_shared<TestFirmware>(),
       std::make_shared<TestInstructionFile>(),
-      std::make_shared<TestInstructionInterpreter>()
+      std::make_shared<TestInstructionInterpreter>(),
+      std::make_shared<TestFirmwareOps>()
     };
 
 #ifdef RUN_GUI_TESTS

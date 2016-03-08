@@ -85,3 +85,86 @@ void TestFlash::test_address()
 
   test_increment<Address>();
 }
+
+void TestFlash::test_key_from_flash_memory()
+{
+  // valid
+  {
+    std::string str_data = "MDPP16  \x11\x12\x13\x14\x15\x16  \x23\x24\x25\x26";
+    std::vector<uchar> data;
+
+    std::transform(std::begin(str_data), std::end(str_data), std::back_inserter(data),
+        [](char c) { return static_cast<uchar>(c); });
+
+    Key key = Key::from_flash_memory(gsl::as_span(data));
+
+    QCOMPARE(key.get_prefix(), QString("MDPP16  "));
+    QCOMPARE(key.get_sn(),  0x11121314u);
+    QCOMPARE(key.get_sw(),  static_cast<uint16_t>(0x1516u));
+    QCOMPARE(key.get_key(), 0x23242526u);
+  }
+
+  // more data but valid
+  {
+    std::string str_data = "MDPP16  \x11\x12\x13\x14\x15\x16  \x23\x24\x25\x26\x42\x42";
+    std::vector<uchar> data;
+
+    std::transform(std::begin(str_data), std::end(str_data), std::back_inserter(data),
+        [](char c) { return static_cast<uchar>(c); });
+
+    Key key = Key::from_flash_memory(gsl::as_span(data));
+
+    QCOMPARE(key.get_prefix(), QString("MDPP16  "));
+    QCOMPARE(key.get_sn(),  0x11121314u);
+    QCOMPARE(key.get_sw(),  static_cast<uint16_t>(0x1516u));
+    QCOMPARE(key.get_key(), 0x23242526u);
+
+    qDebug() << "key:" << key.to_string();
+  }
+
+  // not enough data
+  {
+    std::string str_data = "MDPP16  \x11\x12\x13\x14\x15\x16  \x23\x24\x25";
+    std::vector<uchar> data;
+
+    std::transform(std::begin(str_data), std::end(str_data), std::back_inserter(data),
+        [](char c) { return static_cast<uchar>(c); });
+
+    QVERIFY_EXCEPTION_THROWN(
+      Key::from_flash_memory(gsl::as_span(data)),
+      KeyError);
+  }
+}
+
+void TestFlash::test_key_constructor()
+{
+  {
+    Key k("ABCDEFGH", 1u, 1u, 0xffffffffu);
+
+    QCOMPARE(k.get_prefix(), QString("ABCDEFGH"));
+    QCOMPARE(k.get_sn(), 1u);
+    QCOMPARE(k.get_sw(), static_cast<uint16_t>(1u));
+    QCOMPARE(k.get_key(), 0xffffffffu);
+  }
+
+  {
+    QVERIFY_EXCEPTION_THROWN(
+        Key("ABCDEFGHI", 1u, 1u, 0xffffffffu),
+        KeyError);
+  }
+
+  {
+    QVERIFY_EXCEPTION_THROWN(
+        Key("ABCDEFG", 1u, 1u, 0xffffffffu),
+        KeyError);
+  }
+}
+
+void TestFlash::test_key_to_string()
+{
+  {
+    Key k("ABCDEFGH", 1u, 1u, 0xffffffffu);
+
+    QCOMPARE(k.to_string(), QString("Key(sn=ABCDEFGH00000001, sw=0001, key=FFFFFFFF)"));
+  }
+}

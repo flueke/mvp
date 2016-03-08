@@ -154,8 +154,16 @@ template <typename T, typename U>
 T &format_bytes(T &stream, const U &bytes)
 {
   stream << qSetFieldWidth(2) << qSetPadChar('0') << hex;
+
+  size_t i=0;
+
   for (uchar c: bytes) {
+    stream << qSetFieldWidth(2) << qSetPadChar('0') << hex;
     stream << c;
+    stream << reset << " ";
+
+    if ((++i % 16) == 0)
+      stream << endl;
   }
   return stream;
 }
