@@ -16,9 +16,6 @@ FlashWidget::FlashWidget(QWidget *parent)
 {
   ui->setupUi(this);
 
-  ui->pb_open_file->setIcon(style()->standardIcon(
-        QStyle::SP_DialogOpenButton));
-
   connect(ui->pb_refresh_serial_ports, SIGNAL(clicked()),
       this, SIGNAL(serial_port_refresh_requested()));
 
