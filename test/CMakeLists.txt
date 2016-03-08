@@ -19,6 +19,7 @@ include_directories(${Boost_INCLUDE_DIRS} ${libmvp_SOURCE_DIR}/src ${libmvp_BINA
 set(LIBMVP_TEST_SOURCES
   test_file_dialog.cc
   test_firmware.cc
+  test_firmware_ops.cc
   test_flash.cc
   test_instruction_file.cc
   test_instruction_interpreter.cc

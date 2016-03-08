@@ -102,19 +102,6 @@ class KeyFirmwarePart: public InstructionFirmwarePart
         const ContentsType &contents = ContentsType())
       : InstructionFirmwarePart(filename, boost::none, boost::none, contents)
     {}
-
-#if 0
-    /* These methods extract information from the filename. The same
-     * information should be inside the files instruction list aswell.
-     * TODO: Need something to check the consistency of filename and
-     * instruction list. */
-    QString get_device_name() const;
-    QVector<uchar> get_serial_number() const;
-    QVector<uchar> get_software_number() const;
-
-    // TODO: need to interpret the instruction list to be able to calculate this
-    uchar get_checksum() const;
-#endif
 };
 
 typedef std::shared_ptr<FirmwarePart> FirmwarePartPtr;

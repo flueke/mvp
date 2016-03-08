@@ -1,4 +1,6 @@
 #include "flash.h"
+#include <boost/endian/conversion.hpp>
+#include <boost/format.hpp>
 
 namespace mesytec
 {
@@ -121,6 +123,8 @@ void BasicFlash::write_page(const Address &addr, uchar section,
 
   write_instruction(m_wbuf);
   write(data, timeout_ms);
+
+  emit data_written(span_to_qvector(data));
 
   //qDebug() << "WRF data written:" << span_to_qvector(data);
 
@@ -289,6 +293,86 @@ void BasicFlash::ensure_response_code_ok(const gsl::span<uchar> &response_code) 
     throw std::runtime_error("instruction failed");
 }
 
+Key::Key(const QString &prefix, uint32_t sn, uint16_t sw, uint32_t key)
+  : m_prefix(prefix)
+  , m_sn(sn)
+  , m_sw(sw)
+  , m_key(key)
+{
+  if (m_prefix.size() != keys::prefix_bytes)
+    throw KeyError("Invalid prefix size");
+}
+
+Key Key::from_flash_memory(const gsl::span<uchar> data)
+{
+  if (data.size() < keys::total_bytes)
+    throw KeyError("Key::from_flash_memory: given data is too short");
+
+  Key ret;
+
+  std::transform(
+      std::begin(data) + keys::prefix_offset,
+      std::begin(data) + keys::prefix_offset + keys::prefix_bytes,
+      std::back_inserter(ret.m_prefix),
+      [](uchar c) { return static_cast<char>(c); });
+
+  ret.m_sn  = boost::endian::big_to_native(*(reinterpret_cast<uint32_t *>(data.data() + keys::sn_offset)));
+  ret.m_sw  = boost::endian::big_to_native(*(reinterpret_cast<uint16_t *>(data.data() + keys::sw_offset)));
+  ret.m_key = boost::endian::big_to_native(*(reinterpret_cast<uint32_t *>(data.data() + keys::key_offset)));
+
+  return ret;
+}
+
+QString Key::to_string() const
+{
+  auto fmt = boost::format("Key(sn=%|1$|%|2$08X|, sw=%|3$04X|, key=%|4$08X|)")
+    % get_prefix().toStdString() % get_sn() % get_sw() % get_key();
+
+  return QString::fromStdString(fmt.str());
+}
+
+bool Key::operator==(const Key &o) const
+{
+  return get_prefix() == o.get_prefix()
+    && get_sn() == o.get_sn()
+    && get_sw() == o.get_sw()
+    && get_key() == o.get_key();
+}
+
+OTP::OTP(const QString &device, uint32_t sn)
+  : m_device(device)
+  , m_sn(sn)
+{
+  if (m_device.size() != otp::device_bytes)
+    throw OTPError("Invalid device name length");
+}
+
+OTP OTP::from_flash_memory(const gsl::span<uchar> data)
+{
+  if (data.size() < otp::total_bytes)
+    throw OTPError("OTP::from_flash_memory: given data is too short");
+
+  OTP ret;
+
+  std::transform(
+      std::begin(data) + otp::device_offset,
+      std::begin(data) + otp::device_offset + otp::device_bytes,
+      std::back_inserter(ret.m_device),
+      [](uchar c) { return static_cast<char>(c); });
+
+  ret.m_sn  = boost::endian::big_to_native(*(reinterpret_cast<uint32_t *>(data.data() + otp::sn_offset)));
+
+  return ret;
+}
+
+QString OTP::to_string() const
+{
+  auto fmt = boost::format("OTP(dev=%|1$|, sn=%|2$08X|)")
+    % get_device().toStdString() % get_sn();
+
+  return QString::fromStdString(fmt.str());
+}
+
 void Flash::recover(size_t tries)
 {
   std::exception_ptr last_nop_exception;
@@ -432,6 +516,52 @@ VerifyResult Flash::blankcheck_section(uchar section, size_t size)
       .arg(ret.to_string()));
 
   return ret;
+}
+
+KeyMap Flash::read_keys()
+{
+  KeyMap ret;
+
+  for (size_t i=0; i<constants::max_keys; ++i) {
+
+    auto addr = Address(i * constants::keys_offset);
+    auto mem  = read_memory(addr, constants::keys_section, keys::total_bytes);
+    auto it   = std::find_if(mem.begin(), mem.end(), [](uchar c) { return c != 0xff; });
+
+    if (it == mem.end())
+      continue;
+
+    auto key = Key::from_flash_memory(mem);
+
+    ret[i] = key;
+  }
+
+  return ret;
+}
+
+QSet<size_t> Flash::get_used_key_slots()
+{
+  auto keymap = read_keys();
+
+  return QSet<size_t>::fromList(keymap.keys());
+}
+
+QSet<size_t> Flash::get_free_key_slots()
+{
+  auto used = get_used_key_slots();
+  QSet<size_t> all_slots;
+
+  for (size_t i=0; i<constants::max_keys; ++i)
+    all_slots.insert(i);
+
+  return all_slots.subtract(used);
+}
+
+OTP Flash::read_otp()
+{
+  auto mem = read_memory({0, 0, 0}, constants::otp_section, otp::total_bytes);
+
+  return OTP::from_flash_memory(mem);
 }
 
 size_t pad_to_page_size(QVector<uchar> &data)
