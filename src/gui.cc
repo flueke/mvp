@@ -5,19 +5,20 @@
 #include "flash_widget.h"
 #include "firmware_ops.h"
 
+#include <QCloseEvent>
+#include <QDateTime>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFutureWatcher>
 #include <QIcon>
+#include <QMessageBox>
+#include <QMetaObject>
 #include <QProgressBar>
 #include <QSerialPort>
+#include <QSignalBlocker>
 #include <QtConcurrent>
 #include <QtDebug>
 #include <QThread>
-#include <QDateTime>
-#include <QSignalBlocker>
-#include <QCloseEvent>
-#include <QMetaObject>
 
 #include <utility>
 
@@ -121,6 +122,12 @@ MVPGui::~MVPGui()
 
 void MVPGui::_on_start_button_clicked()
 {
+  write_firmware();
+  handle_keys();
+}
+
+void MVPGui::write_firmware()
+{
   if (m_fw.isRunning()) {
     append_to_log("Error: operation in progress");
     return;
@@ -180,6 +187,98 @@ void MVPGui::_on_start_button_clicked()
     append_to_log(e.to_string());
   } catch (const FlashVerificationError &e) {
     append_to_log(e.to_string());
+  } catch (const std::exception &e) {
+    append_to_log(QString(e.what()));
+  }
+}
+
+void MVPGui::handle_keys()
+{
+  if (m_fw.isRunning()) {
+    append_to_log("Error: operation in progress");
+    return;
+  }
+
+  auto fw_keys = m_firmware.get_key_parts();
+
+  if (fw_keys.isEmpty())
+    return;
+
+  auto keys_handler = std::unique_ptr<KeysHandler>(
+      new KeysHandler(
+        m_firmware,
+        m_port_helper,
+        m_flash,
+        m_object_holder));
+
+  QFuture<KeysInfo> f_keys_info;
+  KeysInfo keys_info;
+
+  // read key info from device and firmware
+  {
+    ThreadMover tm(m_object_holder, 0);
+
+    f_keys_info = run_in_thread<KeysInfo>([&] {
+        m_port_helper->open_port();
+        m_flash->ensure_clean_state();
+        return keys_handler->get_keys_info();
+        }, m_object_holder);
+
+    m_fw.setFuture(f_keys_info);
+
+    if (!m_fw.isFinished()) {
+      m_progressbar->setVisible(true);
+      m_loop.exec();
+      m_progressbar->setVisible(false);
+    }
+
+    try {
+      keys_info = f_keys_info.result();
+      append_to_log("New keys:");
+
+      for (const auto &key: keys_info.get_new_firmware_keys()) {
+        append_to_log(key.to_string());
+      }
+
+    } catch (const std::exception &e) {
+      append_to_log(QString(e.what()));
+      return;
+    }
+  }
+
+  // ask the user what to do
+  if (keys_info.need_to_erase()) {
+    auto answer = QMessageBox::question(
+        this,
+        "Key limit reached",
+        "The device key storage is full. "
+        "To write the new keys to the device the current set of keys has to be erased.\n"
+        "Do you want to erase the set of device keys and replace them with the firmware keys?",
+        QMessageBox::Yes | QMessageBox::Cancel
+        );
+
+    if (answer != QMessageBox::Yes)
+      return;
+  }
+
+  ThreadMover tm(m_object_holder, 0);
+
+  auto f_result = run_in_thread<void>([&] {
+      m_port_helper->open_port();
+      m_flash->ensure_clean_state();
+      keys_handler->write_keys();
+      }, m_object_holder);
+
+  m_fw.setFuture(f_result);
+
+  if (!m_fw.isFinished()) {
+    m_progressbar->setVisible(true);
+    m_loop.exec();
+    m_progressbar->setVisible(false);
+  }
+
+  try {
+    m_fw.waitForFinished();
   } catch (const std::exception &e) {
     append_to_log(QString(e.what()));
   }

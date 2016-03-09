@@ -46,6 +46,9 @@ class MVPGui: public QMainWindow
     void _on_start_button_clicked();
     void _on_firmware_file_changed(const QString &);
 
+    void write_firmware();
+    void handle_keys();
+
     // execution
     void handle_future_started();
     void handle_future_finished();
