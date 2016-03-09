@@ -66,11 +66,12 @@ namespace mvp
 
   namespace constants
   {
-    const uchar otp_section       =  0;
-    const uchar keys_section      =  2;
-    const uchar firmware_section  = 12;
-    const uchar access_code[]     = { 0xCD, 0xAB };
-    const uchar area_index_max    = 0x03;
+    const uchar otp_section                 =  0;
+    const uchar keys_section                =  2;
+    const uchar common_calibration_section  =  3;
+    const uchar firmware_section            = 12;
+    const uchar access_code[]               = { 0xCD, 0xAB };
+    const uchar area_index_max              = 0x03;
 
     const size_t address_max      = 0xffffff;
     const size_t page_size        = 256;
