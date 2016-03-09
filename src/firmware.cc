@@ -344,7 +344,7 @@ FirmwareArchive from_zip(const QString &zip_filename)
   QuaZip zip(zip_filename);
 
   if (!zip.open(QuaZip::mdUnzip))
-    throw make_zip_error("open", zip);
+    throw make_zip_error("Error opening archive file", zip);
 
   FirmwareContentsFileGenerator gen = ZipFirmwareFileGenerator(&zip);
 

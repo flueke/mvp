@@ -7,6 +7,7 @@
 #include <QtDebug>
 #include <QSerialPort>
 #include <QTextStream>
+#include <QObject>
 
 #include <exception>
 #include <functional>
@@ -82,6 +83,52 @@ QFuture<T> run_in_thread(Func func, QObject *thread_dependent_obj)
         throw QtExceptionPtr(std::current_exception());
       }
     });
+}
+
+template <typename T, typename Func>
+T run_in_thread_wait_in_loop(Func func, QObject *thread_dependent_obj,
+    QFutureWatcher<void> &fw)
+{
+  QEventLoop loop;
+
+  auto con = QObject::connect(&fw, &QFutureWatcher<void>::finished, [&]() {
+      qDebug() << "exiting local event loop";
+      loop.quit();
+    });
+
+  ThreadMover tm(thread_dependent_obj, 0);
+
+  auto f = run_in_thread<T>(func, thread_dependent_obj);
+  fw.setFuture(f);
+
+  loop.exec();
+
+  QObject::disconnect(con);
+
+  return f.result();
+}
+
+template <typename Func>
+void run_in_thread_wait_in_loop(Func func, QObject *thread_dependent_obj,
+    QFutureWatcher<void> &fw)
+{
+  QEventLoop loop;
+
+  auto con = QObject::connect(&fw, &QFutureWatcher<void>::finished, [&]() {
+      qDebug() << "exiting local event loop";
+      loop.quit();
+    });
+
+  ThreadMover tm(thread_dependent_obj, 0);
+
+  auto f = run_in_thread<void>(func, thread_dependent_obj);
+  fw.setFuture(f);
+
+  loop.exec();
+
+  QObject::disconnect(con);
+
+  f.waitForFinished();
 }
 
 const QMap<QSerialPort::SerialPortError, QString> port_error_to_string_data = {
