@@ -33,7 +33,8 @@ void format_offsets(const gsl::span<uchar> data, QTextStream &out)
       if (gain >= n_gains_used)
         continue;
 
-      out << "c=" << channel << " g=" << gain << ": ";
+      out << "c=" << qSetFieldWidth(2) << channel << qSetFieldWidth(0)
+        << " g=" << gain << ": ";
 
       for (size_t prediff=0; prediff<n_prediffs_total; ++prediff) {
         if (prediff >= n_prediffs_used)
@@ -45,7 +46,7 @@ void format_offsets(const gsl::span<uchar> data, QTextStream &out)
         uint32_t value = boost::endian::little_to_native(
             *(reinterpret_cast<uint32_t *>(data.data() + byte_offset)));
 
-        out << value;
+        out << qSetFieldWidth(6) << value << qSetFieldWidth(0);
 
         if (prediff == n_prediffs_used-1)
           out << endl;
@@ -64,7 +65,7 @@ void format_prediffs(const gsl::span<uchar> data, QTextStream &out)
 
   for (size_t channel=0; channel<n_channels; ++channel) {
 
-    out << "c=" << channel << ": ";
+    out << "c=" << qSetFieldWidth(2) << channel << qSetFieldWidth(0) << ": ";
 
     for (size_t prediff=0; prediff<n_prediffs_total; ++prediff) {
       if (prediff >= n_prediffs_used)
@@ -76,7 +77,7 @@ void format_prediffs(const gsl::span<uchar> data, QTextStream &out)
       uint32_t value = boost::endian::little_to_native(
           *(reinterpret_cast<uint32_t *>(data.data() + byte_offset)));
 
-      out << value;
+      out << qSetFieldWidth(6) << value << qSetFieldWidth(0);
 
       if (prediff == n_prediffs_used-1)
         out << endl;
