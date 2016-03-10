@@ -41,7 +41,7 @@ namespace mdpp16
   namespace prediffs
   {
     const size_t prediff_bits     = 2;
-    const size_t n_prediffs_used  = 3;
+    const size_t n_prediffs_used  = 4;
     const size_t n_prediffs_total = 1u << prediff_bits;
     const size_t total_bits       = channel_bits + prediff_bits;
     const size_t total_bytes      = (1u << total_bits) * word_bytes;
