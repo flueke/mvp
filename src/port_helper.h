@@ -14,12 +14,6 @@ namespace mvp
 typedef QList<QSerialPortInfo> PortInfoList;
 typedef std::function<PortInfoList ()> PortInfoProvider;
 
-class AbstractPortInfoProvider
-{
-  public:
-    virtual PortInfoList operator()() = 0;
-};
-
 class PortHelper: public QObject
 {
   Q_OBJECT
