@@ -166,7 +166,10 @@ class ZipFirmwareFile: public FirmwareContentsFile
     {}
 
     QString get_filename() const override
-    { return m_zip->getCurrentFileName(); }
+    {
+        // strip the path to allow having zips with subdirectories
+        return QFileInfo(m_zip->getCurrentFileName()).fileName();
+    }
 
     QVector<uchar> get_file_contents() override
     {
@@ -287,6 +290,8 @@ class ZipFirmwareFileGenerator
           throw make_zip_error("goToFirstFile", *m_zip);
         }
 
+        qDebug() << __PRETTY_FUNCTION__ << "yielding" << m_zip_fw_file.get_filename();
+
         return &m_zip_fw_file;
       }
 
@@ -296,6 +301,8 @@ class ZipFirmwareFileGenerator
         }
         return nullptr;
       }
+
+      qDebug() << __PRETTY_FUNCTION__ << "yielding" << m_zip_fw_file.get_filename();
 
       return &m_zip_fw_file;
     }
