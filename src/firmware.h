@@ -155,6 +155,7 @@ FirmwareArchive from_firmware_file_generator(FirmwareContentsFileGenerator &gen,
     const QString &archive_filename = QString());
 FirmwareArchive from_dir(const QDir &dir);
 FirmwareArchive from_zip(const QString &zip_filename);
+FirmwareArchive from_single_file(const QString &filename);
 
 inline bool is_binary_part(const FirmwarePartPtr &pp)
 {
