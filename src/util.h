@@ -15,6 +15,8 @@
 
 #include <gsl.h>
 
+#define QSL(str) QStringLiteral(str)
+
 class QThread;
 
 namespace mesytec
