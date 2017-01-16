@@ -16,6 +16,7 @@ include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 git_describe(GIT_VERSION "--always")
 
+add_subdirectory(bin)
 add_subdirectory(external)
 
 get_property(LIBMVP_INCLUDES TARGET "libmvp" PROPERTY INCLUDE_DIRECTORIES)
@@ -35,7 +36,7 @@ endif(WIN32)
 
 set(CPACK_PACKAGE_VERSION "${GIT_VERSION}")
 set(CPACK_PACKAGE_VENDOR "mesytec")
-set(CPACK_PACKAGE_EXECUTABLES "mvp;mesycontrol")
+set(CPACK_PACKAGE_EXECUTABLES "mvp;mvp")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "mvp")
 set(CPACK_OUTPUT_FILE_PREFIX "packages")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/installer-gpl-notice.txt")
