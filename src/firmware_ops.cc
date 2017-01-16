@@ -158,7 +158,7 @@ KeysInfo::KeysInfo(
 
 bool KeysInfo::need_to_erase() const
 {
-  return get_device_keys().size() + get_new_firmware_keys().size() > constants::max_keys;
+  return static_cast<size_t>(get_device_keys().size() + get_new_firmware_keys().size()) > constants::max_keys;
 }
 
 KeyList KeysInfo::get_new_firmware_keys() const
@@ -234,7 +234,7 @@ void KeysHandler::write_keys()
 {
   const auto key_parts = get_key_parts_to_write();
 
-  if (key_parts.size() > constants::max_keys) {
+  if (static_cast<size_t>(key_parts.size()) > constants::max_keys) {
     throw std::runtime_error("Firmware keys exceed maximum number of device keys.");
   }
 
