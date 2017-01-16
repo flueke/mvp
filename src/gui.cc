@@ -396,5 +396,15 @@ void MVPGui::append_to_log_queued(const QString &s)
         Q_ARG(QString, s));
 }
 
+void MVPGui::on_actionAbout_triggered()
+{
+
+}
+
+void MVPGui::on_actionAbout_Qt_triggered()
+{
+    QMessageBox::aboutQt(this, "About Qt");
+}
+
 } // ns mvp
 } // ns mesytec

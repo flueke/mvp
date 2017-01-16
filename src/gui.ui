@@ -14,7 +14,7 @@
    <string>MVP</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources.qrc">
+   <iconset resource="../external/libmvp/src/resources.qrc">
     <normaloff>:/window-icon.png</normaloff>:/window-icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -49,16 +49,24 @@
      <x>0</x>
      <y>0</y>
      <width>274</width>
-     <height>24</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="action_quit"/>
    </widget>
+   <widget class="QMenu" name="menu_Help">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+    <addaction name="actionAbout_Qt"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menu_Help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_refresh_serial_ports">
@@ -84,13 +92,23 @@
     <string>Start</string>
    </property>
   </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionAbout_Qt">
+   <property name="text">
+    <string>About &amp;Qt</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
   <tabstop>logview</tabstop>
  </tabstops>
  <resources>
-  <include location="resources.qrc"/>
+  <include location="../external/libmvp/src/resources.qrc"/>
  </resources>
  <connections>
   <connection>

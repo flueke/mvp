@@ -56,6 +56,9 @@ class MVPGui: public QMainWindow
     // misc
     void append_to_log(const QString &s);
 
+    void on_actionAbout_triggered();
+    void on_actionAbout_Qt_triggered();
+
   private:
     void append_to_log_queued(const QString &s);
 
