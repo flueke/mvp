@@ -10,9 +10,9 @@ namespace mvp
 static PortInfoProvider default_portinfo_provider = [] {
   auto ports(QSerialPortInfo::availablePorts());
 
-  ports.erase(std::remove_if(ports.begin(), ports.end(), [](const QSerialPortInfo &info) {
-          return !info.description().startsWith("mvp");
-        }), ports.end());
+  //ports.erase(std::remove_if(ports.begin(), ports.end(), [](const QSerialPortInfo &info) {
+  //        return !info.description().startsWith("mvp");
+  //      }), ports.end());
 
 #if 0
   for (const auto &port: ports) {

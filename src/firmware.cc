@@ -166,7 +166,10 @@ class ZipFirmwareFile: public FirmwareContentsFile
     {}
 
     QString get_filename() const override
-    { return m_zip->getCurrentFileName(); }
+    {
+        // strip the path to allow having zips with subdirectories
+        return QFileInfo(m_zip->getCurrentFileName()).fileName();
+    }
 
     QVector<uchar> get_file_contents() override
     {
@@ -287,6 +290,8 @@ class ZipFirmwareFileGenerator
           throw make_zip_error("goToFirstFile", *m_zip);
         }
 
+        qDebug() << __PRETTY_FUNCTION__ << "yielding" << m_zip_fw_file.get_filename();
+
         return &m_zip_fw_file;
       }
 
@@ -296,6 +301,8 @@ class ZipFirmwareFileGenerator
         }
         return nullptr;
       }
+
+      qDebug() << __PRETTY_FUNCTION__ << "yielding" << m_zip_fw_file.get_filename();
 
       return &m_zip_fw_file;
     }
@@ -339,12 +346,44 @@ class DirFirmwareFileGenerator
     std::shared_ptr<DirFirmwareFile> m_dir_fw_file;
 };
 
+class SingleFileFirmwareFileGenerator
+{
+  public:
+    SingleFileFirmwareFileGenerator(const QFileInfo &fi)
+      : m_fileinfo(fi)
+    {
+      qDebug() << "SingleFileFirmwareFileGenerator:" << "filename =" << fi.fileName();
+    }
+
+    FirmwareContentsFile *operator()()
+    {
+      qDebug() << "SingleFileFirmwareFileGenerator::operator()";
+
+      if (!m_dir_fw_file)
+      {
+        m_dir_fw_file = std::make_shared<DirFirmwareFile>(m_fileinfo);
+
+        qDebug() << "SingleFileFirmwareFileGenerator::operator(): returning DirFirmwareFile"
+          << m_dir_fw_file->get_filename();
+
+        return m_dir_fw_file.get();
+
+      }
+
+      return nullptr;
+    }
+
+  private:
+    QFileInfo m_fileinfo;
+    std::shared_ptr<DirFirmwareFile> m_dir_fw_file;
+};
+
 FirmwareArchive from_zip(const QString &zip_filename)
 {
   QuaZip zip(zip_filename);
 
   if (!zip.open(QuaZip::mdUnzip))
-    throw make_zip_error("open", zip);
+    throw make_zip_error("Error opening archive file", zip);
 
   FirmwareContentsFileGenerator gen = ZipFirmwareFileGenerator(&zip);
 
@@ -355,6 +394,12 @@ FirmwareArchive from_dir(const QDir &dir)
 {
   FirmwareContentsFileGenerator gen = DirFirmwareFileGenerator(dir);
   return from_firmware_file_generator(gen, dir.path());
+}
+
+FirmwareArchive from_single_file(const QString &filename)
+{
+  FirmwareContentsFileGenerator gen = SingleFileFirmwareFileGenerator(QFileInfo(filename));
+  return from_firmware_file_generator(gen, filename);
 }
 
 } // ns mvp
