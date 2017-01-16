@@ -52,6 +52,6 @@ target_link_libraries(${LIBMVP_TARGET} ${QUAZIP_LIBRARIES})
 include(GenerateExportHeader)
 generate_export_header(${LIBMVP_TARGET})
 
-install(TARGETS ${LIBMVP_TARGET} DESTINATION lib)
+install(TARGETS ${LIBMVP_TARGET} DESTINATION lib COMPONENT libraries)
 
 # vim:tw=0
