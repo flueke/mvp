@@ -1,3 +1,4 @@
+cmake_policy(SET CMP0020 NEW) # Automatically link Qt executables to qtmain target on Windows.
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
