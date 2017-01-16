@@ -19,7 +19,7 @@ qt5_wrap_ui(UIC_OUT gui.ui)
 
 set(MVP_TARGET "mvp")
 
-add_executable(${MVP_TARGET} ${MVP_SOURCES} ${UIC_OUT})
+add_executable(${MVP_TARGET} WIN32 ${MVP_SOURCES} ${UIC_OUT})
 add_dependencies(mvp libmvp)
 
 qt5_use_modules(${MVP_TARGET}
