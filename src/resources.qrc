@@ -7,6 +7,7 @@
     <file alias="mesytec-logo.png">resources/mesytec-logo-yellow.png</file>
     <file alias="window-icon.png">resources/window-icon-3.png</file>
     <file alias="document-open.png">resources/document-open.png</file>
+    <file alias="gpl-notice.txt">resources/gpl-notice.txt</file>
 </qresource>
 </RCC>
 <!-- vim:ft=xml
