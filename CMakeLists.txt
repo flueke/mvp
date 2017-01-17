@@ -39,7 +39,7 @@ set(CPACK_PACKAGE_VENDOR "mesytec")
 set(CPACK_PACKAGE_EXECUTABLES "mvp;mvp")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "mvp")
 set(CPACK_OUTPUT_FILE_PREFIX "packages")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/installer-gpl-notice.txt")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/external/libmvp/src/resources/gpl-notice.txt")
 set(CPACK_STRIP_FILES TRUE)
 
 if (WIN32)

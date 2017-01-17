@@ -4,6 +4,7 @@
 #include "file_dialog.h"
 #include "flash_widget.h"
 #include "firmware_ops.h"
+#include "git_sha1.h"
 
 #include <QCloseEvent>
 #include <QDateTime>
@@ -11,9 +12,11 @@
 #include <QFileInfo>
 #include <QFutureWatcher>
 #include <QIcon>
+#include <QLabel>
 #include <QMessageBox>
 #include <QMetaObject>
 #include <QProgressBar>
+#include <QPushButton>
 #include <QSerialPort>
 #include <QSignalBlocker>
 #include <QtConcurrent>
@@ -398,7 +401,88 @@ void MVPGui::append_to_log_queued(const QString &s)
 
 void MVPGui::on_actionAbout_triggered()
 {
+    auto dialog = new QDialog(this);
+    dialog->setWindowTitle(QSL("About mvp"));
 
+    auto tb_license = new QTextBrowser(dialog);
+    tb_license->setWindowFlags(Qt::Window);
+    tb_license->setWindowTitle(QSL("mvp license"));
+
+    {
+        QFile licenseFile(":/gpl-notice.txt");
+        licenseFile.open(QIODevice::ReadOnly);
+        tb_license->setText(licenseFile.readAll());
+    }
+
+    auto layout = new QVBoxLayout(dialog);
+
+    {
+        auto label = new QLabel;
+        label->setPixmap(QPixmap(":/mesytec-logo.png").
+                              scaledToWidth(300, Qt::SmoothTransformation));
+        layout->addWidget(label);
+    }
+
+    {
+        QString text = QString("mvp - %1").arg(g_GIT_VERSION);
+        auto label = new QLabel;
+        auto font = label->font();
+        font.setPointSize(15);
+        font.setBold(true);
+        label->setFont(font);
+        layout->addWidget(label);
+    }
+
+    layout->addWidget(new QLabel(QSL("mvp - Mesytec Programmer")));
+    layout->addWidget(new QLabel(QString("Version %1").arg(g_GIT_VERSION)));
+    layout->addWidget(new QLabel(QSL("© 2015-2017 mesytec GmbH & Co. KG")));
+    layout->addWidget(new QLabel(QSL("Authors: F. Lüke")));
+
+    {
+        QString text(QSL("<a href=\"mailto:info@mesytec.com\">info@mesytec.com</a> - <a href=\"http://www.mesytec.com\">www.mesytec.com</a>"));
+        auto label = new QLabel(text);
+        label->setOpenExternalLinks(true);
+        layout->addWidget(label);
+    }
+
+    layout->addSpacing(20);
+
+    auto buttonLayout = new QHBoxLayout;
+
+    {
+        auto button = new QPushButton(QSL("&License"));
+        connect(button, &QPushButton::clicked, this, [this, tb_license]() {
+            auto sz = tb_license->size();
+            sz = sz.expandedTo(QSize(500, 300));
+            tb_license->resize(sz);
+            tb_license->show();
+            tb_license->raise();
+        });
+
+        buttonLayout->addWidget(button);
+    }
+
+    {
+        auto button = new QPushButton(QSL("&Close"));
+        connect(button, &QPushButton::clicked, dialog, &QDialog::close);
+        button->setAutoDefault(true);
+        button->setDefault(true);
+        buttonLayout->addWidget(button);
+    }
+
+    layout->addLayout(buttonLayout);
+
+    for (int i=0; i<layout->count(); ++i)
+    {
+        auto item = layout->itemAt(i);
+        item->setAlignment(Qt::AlignHCenter);
+
+        auto label = qobject_cast<QLabel *>(item->widget());
+        if (label)
+            label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    }
+
+    dialog->exec();
 }
 
 void MVPGui::on_actionAbout_Qt_triggered()

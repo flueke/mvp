@@ -1,4 +1,4 @@
-mvp - Mesytec VME Programmer
+mvp - Mesytec Programmer
 Copyright (C) 2015-2017 mesytec GmbH & Co. KG <info@mesytec.com>
 
 This program is free software; you can redistribute it and/or

@@ -12,14 +12,17 @@ set(MVP_SOURCES
   gui.cc
   gui.ui
   main.cc
-  resources.qrc
   )
 
 qt5_wrap_ui(UIC_OUT gui.ui)
 
 set(MVP_TARGET "mvp")
 
-add_executable(${MVP_TARGET} WIN32 ${MVP_SOURCES} ${UIC_OUT})
+# Git Version file generation
+configure_file("git_sha1.cc.in" "git_sha1.cc" @ONLY)
+set(GIT_VERSION_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/git_sha1.cc")
+
+add_executable(${MVP_TARGET} WIN32 ${MVP_SOURCES} ${UIC_OUT} ${GIT_VERSION_SOURCE})
 add_dependencies(mvp libmvp)
 
 qt5_use_modules(${MVP_TARGET}
