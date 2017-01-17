@@ -22,7 +22,15 @@ set(MVP_TARGET "mvp")
 configure_file("git_sha1.cc.in" "git_sha1.cc" @ONLY)
 set(GIT_VERSION_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/git_sha1.cc")
 
-add_executable(${MVP_TARGET} WIN32 ${MVP_SOURCES} ${UIC_OUT} ${GIT_VERSION_SOURCE})
+# Windows resource file
+if (WIN32)
+    set(RES_FILES "windows_metafile.rc")
+    set(CMAKE_RC_COMPILER_INIT windres)
+    ENABLE_LANGUAGE(RC)
+    SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
+endif()
+
+add_executable(${MVP_TARGET} WIN32 ${MVP_SOURCES} ${UIC_OUT} ${GIT_VERSION_SOURCE} ${RES_FILES})
 add_dependencies(mvp libmvp)
 
 qt5_use_modules(${MVP_TARGET}
