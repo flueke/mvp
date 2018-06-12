@@ -55,6 +55,10 @@ namespace mdpp16
 
 } // ns mdpp16
 
+
+
+/* Calibration data is in 34 pages, each 256 bytes in size -> 8704 bytes to read.  */
+
 namespace mdpp32
 {
   const size_t n_channels   = 32;
@@ -67,16 +71,10 @@ namespace mdpp32
   // empty slots need to be skipped
   namespace offsets
   {
-    const size_t gain_bits          =  4;
-    const size_t n_gains_used       =  5;
-    const size_t n_gains_total      = 1u << gain_bits;
-
-    const size_t prediff_bits       =  3;
-    const size_t n_prediffs_used    =  5;
-    const size_t n_prediffs_total   = 1u << prediff_bits;
-
-    const size_t total_bits         = channel_bits + gain_bits + prediff_bits;
-    const size_t total_bytes        = (1u << total_bits) * word_bytes;
+    const size_t channel_block_words = 64;
+    const size_t n_gains    = 5;
+    const size_t n_prediffs = 4;
+    const size_t total_bytes_needed = channel_block_words * n_channels * word_bytes;
   }
 
   // prediff values organized like this:
@@ -85,14 +83,13 @@ namespace mdpp32
   // empty slots need to be skipped
   namespace prediffs
   {
-    const size_t prediff_bits     = 2;
-    const size_t n_prediffs_used  = 4;
-    const size_t n_prediffs_total = 1u << prediff_bits;
-    const size_t total_bits       = channel_bits + prediff_bits;
-    const size_t total_bytes      = (1u << total_bits) * word_bytes;
+    const size_t channel_block_words = 4;
+    const size_t n_prediffs = 4;
+    const size_t total_bytes_needed = channel_block_words * n_channels * word_bytes;
   }
 
-  const size_t calib_data_size = offsets::total_bytes + prediffs::total_bytes;
+  // same as 34 pages, each 256 bytes large
+  const size_t calib_data_size = offsets::total_bytes_needed + prediffs::total_bytes_needed;
 
   void format_calibration_data(const gsl::span<uchar> data, QTextStream &out);
   void format_offsets(const gsl::span<uchar> data, QTextStream &out);
