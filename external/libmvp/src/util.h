@@ -45,9 +45,6 @@ class ThreadMover
     {
       qDebug() << this << "moving" << m_object << "to original thread" << m_thread;
       m_object->moveToThread(m_thread);
-
-      if (m_object->thread() != m_thread)
-        throw std::runtime_error("ending thread move failed"); 
     }
 
   private:
