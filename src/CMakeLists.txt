@@ -8,7 +8,6 @@ find_package(Qt5Concurrent REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5SerialPort REQUIRED)
 find_package(Qt5Widgets REQUIRED)
-find_package(QuaZip REQUIRED)
 find_package(Boost 1.56 REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS} ${QUAZIP_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})

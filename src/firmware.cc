@@ -1,8 +1,8 @@
 #include "firmware.h"
 #include "flash.h"
 #include <QRegularExpression>
-#include <quazip/quazip.h>
-#include <quazip/quazipfile.h>
+#include <quazip.h>
+#include <quazipfile.h>
 
 namespace
 {
