@@ -7,7 +7,7 @@ find_package(Qt5Gui REQUIRED)
 find_package(Qt5SerialPort REQUIRED)
 find_package(Qt5Test REQUIRED)
 find_package(Qt5Widgets REQUIRED)
-find_package(Boost 1.56 REQUIRED)
+find_package(Boost 1.58 REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
