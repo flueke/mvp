@@ -9,7 +9,7 @@ Firmware update utility for mesytecs MDPP-16 and other newer VME modules.
   - cmake
   - Qt5
   - Quazip: https://github.com/stachenov/quazip
-  - Boost >= 1.56
+  - Boost >= 1.58
 
 * Building:
     mkdir build
