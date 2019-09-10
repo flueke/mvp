@@ -154,6 +154,12 @@ KeysInfo::KeysInfo(
       [&](const Key &key) {
       return key_matches_otp(key, otp);
       });
+
+  std::copy_if(std::begin(firmware_keys), std::end(firmware_keys),
+      std::back_inserter(m_mismatched_keys),
+      [&](const Key &key) {
+      return !key_matches_otp(key, otp);
+      });
 }
 
 bool KeysInfo::need_to_erase() const
@@ -232,13 +238,25 @@ FirmwarePartList KeysHandler::get_key_parts_to_write()
 
 void KeysHandler::write_keys()
 {
+  const auto ki = get_keys_info();
+
+#if 0
+  for (auto key: ki.get_firmware_keys())
+  {
+      emit status_message(QString("Key read from file: %1").arg(key.to_string()));
+  }
+
+  for (auto key: ki.get_mismatched_firmware_keys())
+  {
+      emit status_message(QString("!!! OTP/Key mismatch detected: %1").arg(key.to_string()));
+  }
+#endif
+
   const auto key_parts = get_key_parts_to_write();
 
   if (static_cast<size_t>(key_parts.size()) > constants::max_keys) {
     throw std::runtime_error("Firmware keys exceed maximum number of device keys.");
   }
-
-  const auto ki = get_keys_info();
 
   qDebug() << "write_keys: #key_parts =" << key_parts.size()
     << "need_to_erase" << ki.need_to_erase();
