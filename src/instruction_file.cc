@@ -94,10 +94,21 @@ namespace mvp
 
 QString Instruction::to_string() const
 {
-  if (type != Type::text)
-    throw std::runtime_error("Can not convert non-string type instruction to string");
+  auto ret = QString("address=%1, value=").arg(address.to_string());
 
-  return QString::fromLatin1(reinterpret_cast<const char *>(data.data()), data.size());
+  switch (type)
+  {
+    case Type::text:
+        ret += QString::fromLatin1(reinterpret_cast<const char *>(data.data()), data.size());
+        break;
+
+    case Type::binary:
+        for (uchar c: data)
+          ret += QString("%1").arg(static_cast<unsigned>(c), 2, 16, QLatin1Char('0'));
+        break;
+  }
+
+  return ret;
 }
 
 QVector<Instruction> parse_instruction_file(QTextStream &stream)
@@ -145,6 +156,10 @@ QVector<Instruction> parse_instruction_file(QTextStream &stream)
 
   if (ret.isEmpty())
     throw InstructionFileParseError(0, QString(), "Empty instruction file");
+
+  for (auto instr: ret)
+    qDebug() << __PRETTY_FUNCTION__ << instr.to_string();
+
 
   return ret;
 }

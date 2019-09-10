@@ -60,7 +60,11 @@ class KeysInfo
     bool need_to_erase() const;
 
     /* Returns the list of keys contained in the firmware archive matching the
-     * OTP info. */
+     * OTP info.
+     *
+     * Note: only keys matching the devices OTP information are returned. Use
+     * get_mismatched_firmware_keys() to get any additional keys contained in the
+     * firmware file which do not match the OTP.*/
     KeyList get_firmware_keys() const { return m_firmware_keys; }
 
     /* Returns a list of keys contained in the firmware archive and not present
@@ -75,9 +79,15 @@ class KeysInfo
 
     bool is_valid() const { return m_otp.is_valid(); }
 
+    /* Returns a list of the keys contained in the firmware file that did not
+     * match the devices OTP information (e.g. device serial number mismatch).
+     */
+    KeyList get_mismatched_firmware_keys() const { return m_mismatched_keys; }
+
   private:
     OTP m_otp;
     KeyList m_firmware_keys;
+    KeyList m_mismatched_keys;
     KeyMap m_device_keys;
 };
 
