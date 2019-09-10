@@ -39,6 +39,7 @@ set(LIBMVP_SOURCES
     file_dialog.cc
     firmware.cc
     firmware_ops.cc
+    flash_address.cc
     flash.cc
     flash_widget.cc
     instruction_file.cc
