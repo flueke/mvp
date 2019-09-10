@@ -125,7 +125,7 @@ InstructionList InstructionFirmwarePart::get_instructions() const
       reinterpret_cast<const char *>(contents.constData()),
       contents.size());
 
-  QTextStream stream(data);
+  QTextStream stream(data, QIODevice::ReadOnly | QIODevice::Text);
   return parse_instruction_file(stream);
 }
 
