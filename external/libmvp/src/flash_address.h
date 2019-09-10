@@ -1,6 +1,9 @@
 #ifndef UUID_3c4e97fa_29aa_40c6_8389_28c546f52900
 #define UUID_3c4e97fa_29aa_40c6_8389_28c546f52900
 
+#include <QString>
+#include <QDebug>
+#include <gsl.h>
 #include "flash_constants.h"
 
 namespace mesytec
@@ -101,6 +104,8 @@ namespace mvp
         a += n;
         return a;
       }
+
+      QString to_string() const;
 
     private:
       std::array<uchar, 3> _data = {{0, 0, 0}};

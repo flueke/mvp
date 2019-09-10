@@ -1,4 +1,3 @@
-cmake_policy(SET CMP0020 NEW) # Automatically link Qt executables to qtmain target on Windows.
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -7,7 +6,7 @@ find_package(Qt5Gui REQUIRED)
 find_package(Qt5SerialPort REQUIRED)
 find_package(Qt5Test REQUIRED)
 find_package(Qt5Widgets REQUIRED)
-find_package(Boost 1.58 REQUIRED)
+find_package(Boost 1.56 REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
@@ -50,7 +49,7 @@ link_directories(${libmvp_BINARY_DIR}/src)
 
 target_link_libraries(${LIBMVP_TEST_TARGET}
   libmvp
-  ${QUAZIP_LIBRARIES}
+  ${QUAZIP_QT5}
   )
 
 # vim:tw=0
