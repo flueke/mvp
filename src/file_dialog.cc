@@ -16,7 +16,7 @@ FileDialog::FileDialog(QWidget *parent)
 {
   setOption(QFileDialog::DontUseNativeDialog);
   setFileMode(QFileDialog::Directory);
-  setNameFilter("MVP files (*.mvp *.bin *.key)");
+  setNameFilter("MVP files (*.mvp *.bin *.key *.hex)");
 
   auto open_button = get_open_button();
 
