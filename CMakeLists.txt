@@ -28,7 +28,6 @@ get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 git_describe(GIT_VERSION "--always")
 string(REGEX MATCH "^[0-9.]+(-beta|-rc[0-9]*)?(-[0-9]+)?" GIT_VERSION_SHORT ${GIT_VERSION})
 
-add_subdirectory(bin)
 add_subdirectory(external)
 
 get_property(LIBMVP_INCLUDES TARGET "libmvp" PROPERTY INCLUDE_DIRECTORIES)
@@ -73,6 +72,7 @@ set(CPACK_PACKAGE_INSTALL_DIRECTORY "mvp")
 set(CPACK_OUTPUT_FILE_PREFIX "packages")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/external/libmvp/src/resources/gpl-notice.txt")
 set(CPACK_STRIP_FILES TRUE)
+set(CPACK_MONOLITHIC_INSTALL TRUE)
 
 if (WIN32)
     set(CPACK_GENERATOR "ZIP" "NSIS")
