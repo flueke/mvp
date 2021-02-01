@@ -15,6 +15,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 git_describe(GIT_VERSION "--always")
+string(REGEX MATCH "^[0-9.]+(-beta|-rc[0-9]*)?(-[0-9]+)?" GIT_VERSION_SHORT ${GIT_VERSION})
 
 add_subdirectory(bin)
 add_subdirectory(external)
@@ -29,12 +30,26 @@ install(FILES "${CMAKE_SOURCE_DIR}/LICENSE.TXT" DESTINATION .)
 # CPack configuration used for 'make package'
 if (WIN32)
   set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${GIT_VERSION}")
+
+  # Reusing the deploy directory from mvme
+  set(DEPLOY_DIR "c:/src/mvme2-deploy/windows/mvme-${PACKAGE_ARCH_STRING}-libusb-0.1-${CMAKE_BUILD_TYPE}/")
+  if (EXISTS "${DEPLOY_DIR}")
+      install(DIRECTORY "${DEPLOY_DIR}" DESTINATION . USE_SOURCE_PERMISSIONS)
+  endif()
 else(WIN32)
   execute_process(COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE)
   set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${GIT_VERSION}-${ARCHITECTURE}")
+
+  # Reusing the deploy directory from mvme
+  if (EXISTS "$ENV{HOME}/src/mvme2-deploy/linux/mvme-${PACKAGE_ARCH_STRING}-libusb-0.1/")
+      # Install additional deployment files: shared objects, qt plugins, etc.
+      install(DIRECTORY "$ENV{HOME}/src/mvme2-deploy/linux/mvme-${PACKAGE_ARCH_STRING}-libusb-0.1/"
+          DESTINATION .
+          USE_SOURCE_PERMISSIONS)
+  endif()
 endif(WIN32)
 
-set(CPACK_PACKAGE_VERSION "${GIT_VERSION}")
+set(CPACK_PACKAGE_VERSION "${GIT_VERSION_SHORT}")
 set(CPACK_PACKAGE_VENDOR "mesytec")
 set(CPACK_PACKAGE_EXECUTABLES "mvp;mvp")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "mvp")
@@ -51,7 +66,7 @@ if (WIN32)
     set(CPACK_NSIS_CONTACT "info@mesytec.com")
     set(CPACK_SOURCE_GENERATOR "ZIP")
 else(WIN32)
-    set(CPACK_GENERATOR "TBZ2" "STGZ")
+    set(CPACK_GENERATOR "TBZ2")
     set(CPACK_SOURCE_GENERATOR "TBZ2")
 endif(WIN32)
 
