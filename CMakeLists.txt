@@ -27,6 +27,12 @@ add_subdirectory(src)
 
 install(FILES "${CMAKE_SOURCE_DIR}/LICENSE.TXT" DESTINATION .)
 
+if ("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+    set(PACKAGE_ARCH_STRING "x64")
+else()
+    set(PACKAGE_ARCH_STRING "x32")
+endif()
+
 # CPack configuration used for 'make package'
 if (WIN32)
   set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${GIT_VERSION}")
