@@ -8,6 +8,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # Add the local cmake directory module path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+# RPATH handling
+# https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
+
+# use, i.e. don't skip the full RPATH for the build tree
+SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+
+# Enable $ORIGIN in the rpath if supported by the target platform.
+SET(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
+
+SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/")
+
 # Pull information from git:
 # GIT_SHA1 contains the complete git hash
 # GIT_VERSION contains the name of the latest git tag and the start of the git hash if
