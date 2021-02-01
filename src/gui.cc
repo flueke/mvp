@@ -294,9 +294,20 @@ void MVPGui::_on_firmware_file_changed(const QString &filename)
   auto f_result = run_in_thread<FirmwareArchive>([&] {
     QFileInfo fi(filename);
 
-    auto firmware = fi.isDir()
-                    ? from_dir(filename)
-                    : from_zip(filename);
+    FirmwareArchive firmware;
+
+    if (fi.suffix() == QSL("bin") || fi.suffix() == QSL("key") || fi.suffix() == QSL("hex"))
+    {
+        firmware = from_single_file(filename);
+    }
+    else if (fi.isDir())
+    {
+        firmware = from_dir(filename);
+    }
+    else
+    {
+        firmware = from_zip(filename);
+    }
 
     qDebug() << "Firmware object created from" << fi.filePath();
 
