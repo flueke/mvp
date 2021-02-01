@@ -7,10 +7,31 @@ find_package(Qt5Concurrent REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5SerialPort REQUIRED)
 find_package(Qt5Widgets REQUIRED)
-find_package(QuaZip REQUIRED)
 find_package(Boost 1.56 REQUIRED)
 
-include_directories(${Boost_INCLUDE_DIRS} ${QUAZIP_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
+# quazip
+find_path(QUAZIP_INCLUDE_DIR
+    NAMES quazip.h
+    PATH_SUFFIXES quazip quazip-qt5 quazip5)
+
+include_directories(${QUAZIP_INCLUDE_DIR})
+
+find_library(QUAZIP_QT5_RELEASE NAMES quazip quazip-qt5 quazip5)
+find_library(QUAZIP_QT5_DEBUG NAMES quazipd quazip-qt5d quazip5d)
+
+if (WIN32 OR QUAZIP_QT5_DEBUG)
+    set(QUAZIP_QT5
+        optimized ${QUAZIP_QT5_RELEASE}
+        debug ${QUAZIP_QT5_DEBUG}
+        )
+else()
+    set(QUAZIP_QT5 ${QUAZIP_QT5_RELEASE})
+endif()
+
+message("-- Using QUAZIP_INCLUDE_DIR=${QUAZIP_INCLUDE_DIR}")
+message("-- Using QUAZIP_QT5=${QUAZIP_QT5}")
+
+include_directories(${Boost_INCLUDE_DIRS} ${QUAZIP_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
@@ -18,6 +39,7 @@ set(LIBMVP_SOURCES
     file_dialog.cc
     firmware.cc
     firmware_ops.cc
+    flash_address.cc
     flash.cc
     flash_widget.cc
     instruction_file.cc
@@ -47,7 +69,7 @@ qt5_use_modules(${LIBMVP_TARGET}
   Widgets
   )
 
-target_link_libraries(${LIBMVP_TARGET} ${QUAZIP_LIBRARIES})
+target_link_libraries(${LIBMVP_TARGET} ${QUAZIP_QT5})
 
 include(GenerateExportHeader)
 generate_export_header(${LIBMVP_TARGET})

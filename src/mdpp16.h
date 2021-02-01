@@ -54,6 +54,67 @@ namespace mdpp16
   void format_prediffs(const gsl::span<uchar> data, QTextStream &out);
 
 } // ns mdpp16
+
+
+
+/* Calibration data is in 34 pages, each 256 bytes in size -> 8704 bytes to read.  */
+
+namespace mdpp32
+{
+  const size_t n_channels   = 32;
+  const size_t channel_bits =  5;
+  const size_t word_bytes   =  4;
+
+  // offset values organized like this:
+  // offsets[channel][gain][prediff]
+  // offsets[32][10][5]
+  // empty slots need to be skipped
+  namespace offsets
+  {
+    const size_t channel_block_words = 64;
+    const size_t n_gains    = 5;
+    const size_t n_prediffs = 4;
+    const size_t total_bytes_needed = channel_block_words * n_channels * word_bytes;
+  }
+
+  // prediff values organized like this:
+  // prediffs[channel][#prediff]
+  // prediffs[16][3]
+  // empty slots need to be skipped
+  namespace prediffs
+  {
+    const size_t channel_block_words = 4;
+    const size_t n_prediffs = 4;
+    const size_t total_bytes_needed = channel_block_words * n_channels * word_bytes;
+  }
+
+  // same as 34 pages, each 256 bytes large
+  const size_t calib_data_size = offsets::total_bytes_needed + prediffs::total_bytes_needed;
+
+  void format_calibration_data(const gsl::span<uchar> data, QTextStream &out);
+  void format_offsets(const gsl::span<uchar> data, QTextStream &out);
+  void format_prediffs(const gsl::span<uchar> data, QTextStream &out);
+
+} // ns mdpp32
+
+template<typename MDPP>
+void format_calibration_data(const gsl::span<uchar> data, QTextStream &out)
+{
+    return MDPP::format_calibration_data(data, out);
+}
+
+template<typename MDPP>
+void format_offsets(const gsl::span<uchar> data, QTextStream &out)
+{
+    return MDPP::format_offsets(data, out);
+}
+
+template<typename MDPP>
+void format_prediffs(const gsl::span<uchar> data, QTextStream &out)
+{
+    return MDPP::format_prediffs(data, out);
+}
+
 } // ns mvp
 } // ns mesytec
 

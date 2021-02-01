@@ -1,8 +1,8 @@
 #include "firmware.h"
 #include "flash.h"
 #include <QRegularExpression>
-#include <quazip/quazip.h>
-#include <quazip/quazipfile.h>
+#include <quazip.h>
+#include <quazipfile.h>
 
 namespace
 {
@@ -125,7 +125,7 @@ InstructionList InstructionFirmwarePart::get_instructions() const
       reinterpret_cast<const char *>(contents.constData()),
       contents.size());
 
-  QTextStream stream(data);
+  QTextStream stream(data, QIODevice::ReadOnly | QIODevice::Text);
   return parse_instruction_file(stream);
 }
 
