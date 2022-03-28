@@ -423,7 +423,7 @@ QVector<uchar> Flash::read_memory(const Address &start, uchar section,
   size_t len, EarlyReturnFun early_return_fun)
 {
   qDebug() << "read_memory: start =" << start
-           << ", si =" << section
+           << ", section =" << section
            << ", len =" << len
            << ", early return function set =" << bool(early_return_fun);
 
