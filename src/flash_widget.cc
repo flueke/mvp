@@ -63,6 +63,9 @@ int FlashWidget::get_area_index() const
 
 void FlashWidget::set_available_ports(const PortInfoList &ports)
 {
+  if (ports == m_prevPortInfoList)
+    return;
+
   const auto current_port = get_serial_port();
 
   QSignalBlocker b(ui->combo_serial_ports);
@@ -88,7 +91,20 @@ void FlashWidget::set_available_ports(const PortInfoList &ports)
     idx = idx >= 0 ? idx : 0;
   }
 
+  if (ports[idx].serialNumber().isEmpty())
+  {
+    // The previously selected port does not have a serial number so it cannot
+    // be a mesytec device. Look for the first port that has a serial number and
+    // select that instead.
+    auto it = std::find_if(std::begin(ports), std::end(ports),
+     [] (const QSerialPortInfo &port) { return !port.serialNumber().isEmpty(); });
+    if (it != std::end(ports))
+      idx = it - std::begin(ports);
+  }
+
   ui->combo_serial_ports->setCurrentIndex(idx);
+
+  m_prevPortInfoList = ports;
 
   emit serial_port_changed(get_serial_port());
 }
