@@ -10,8 +10,8 @@ following modules: MDPP-16, MDPP-32, VMMR, MVLC.
 * Build requirements:
   - cmake
   - Qt5
-  - Quazip: https://github.com/stachenov/quazip
   - Boost >= 1.58
+  - c++17 capable compiler
 
 * Building:
     mkdir build
