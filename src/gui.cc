@@ -328,34 +328,48 @@ void MVPGui::_on_firmware_file_changed(const QString &filename)
     append_to_log(QString("Loaded firmware from %1")
         .arg(m_firmware.get_filename()));
 
-    append_to_log("Area specific parts:");
+    if (auto areaSpecificParts = m_firmware.get_area_specific_parts();
+        !areaSpecificParts.empty())
+    {
+        append_to_log("Area specific parts:");
 
-    for (const auto &part: m_firmware.get_area_specific_parts()) {
-      append_to_log(QString("\tfn=%1, area=%2, sec=%3, sz=%4")
-          .arg(part->get_filename())
-          .arg(part->has_area() ? QString::number(*part->get_area()) : QString("None"))
-          .arg(part->has_section() ? QString::number(*part->get_section()) : QString("None"))
-          .arg(part->get_contents_size())
-          );
+        for (const auto &part: areaSpecificParts)
+        {
+            append_to_log(QString("\tfn=%1, area=%2, sec=%3, sz=%4")
+                          .arg(part->get_filename())
+                          .arg(part->has_area() ? QString::number(*part->get_area()) : QString("None"))
+                          .arg(part->has_section() ? QString::number(*part->get_section()) : QString("None"))
+                          .arg(part->get_contents_size())
+                         );
+        }
     }
 
-    append_to_log(QString("Non-area specific parts:"));
+    if (auto nonAreaSpecificParts = m_firmware.get_non_area_specific_parts();
+        !nonAreaSpecificParts.empty())
+    {
+        append_to_log(QString("Non-area specific parts:"));
 
-    for (const auto &part: m_firmware.get_non_area_specific_parts()) {
-      append_to_log(QString("\tfn=%1, sec=%3, sz=%4")
-          .arg(part->get_filename())
-          .arg(part->has_section() ? QString::number(*part->get_section()) : QString("None"))
-          .arg(part->get_contents_size())
-          );
+        for (const auto &part: nonAreaSpecificParts)
+        {
+            append_to_log(QString("\tfn=%1, sec=%3, sz=%4")
+                          .arg(part->get_filename())
+                          .arg(part->has_section() ? QString::number(*part->get_section()) : QString("None"))
+                          .arg(part->get_contents_size())
+                         );
+        }
     }
 
-    append_to_log(QString("Key parts:"));
+    if (auto keyParts = m_firmware.get_key_parts();
+        !keyParts.empty())
+    {
+        append_to_log(QString("Key parts:"));
 
-    for (const auto &part: m_firmware.get_key_parts()) {
-      append_to_log(QString("\tfn=%1, sz=%4")
-          .arg(part->get_filename())
-          .arg(part->get_contents_size())
-          );
+        for (const auto &part: m_firmware.get_key_parts()) {
+            append_to_log(QString("\tfn=%1, sz=%4")
+                          .arg(part->get_filename())
+                          .arg(part->get_contents_size())
+                         );
+        }
     }
   } catch (const std::exception &e) {
     m_firmware = FirmwareArchive();
