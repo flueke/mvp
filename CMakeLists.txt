@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.8.9)
 cmake_policy(SET CMP0020 NEW) # Automatically link Qt executables to qtmain target on Windows.
 project(mvp)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 ## Create binaries in the root of the build directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
