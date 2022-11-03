@@ -44,6 +44,7 @@ class FlashWidget: public QWidget
 
   private:
     Ui::FlashWidget *ui;
+    PortInfoList m_prevPortInfoList;
 };
 
 } // ns mvp

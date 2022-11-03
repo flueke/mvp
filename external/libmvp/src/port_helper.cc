@@ -116,3 +116,15 @@ void PortHelper::refresh()
 
 } // ns mvp
 } // ns mesytec
+
+bool operator==(const QSerialPortInfo &a, const QSerialPortInfo &b)
+{
+  return a.description() == b.description()
+    && a.manufacturer() == b.manufacturer()
+    && a.portName() == b.portName()
+    && a.productIdentifier() == b.productIdentifier()
+    && a.serialNumber() == b.serialNumber()
+    && a.systemLocation() == b.systemLocation()
+    && a.vendorIdentifier() == b.vendorIdentifier()
+    ;
+}
