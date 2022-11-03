@@ -60,4 +60,6 @@ class PortHelper: public QObject
 } // ns mvp
 } // ns mesytec
 
+bool operator==(const QSerialPortInfo &a, const QSerialPortInfo &b);
+
 #endif
