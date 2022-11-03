@@ -1,9 +1,11 @@
 Mesytec MVP Programming Tool
 ================================================================================
 
-Firmware update utility for mesytecs MDPP-16 and other newer VME modules.
+Firmware update utility for newer generation mesytec VME modules. Currently supports the
+following modules: MDPP-16, MDPP-32, VMMR, MVLC.
 
-* Website: https://mesytec.com/downloads/firmware%20updates/firmware_MDPP.html
+* Website: https://mesytec.com/downloads/firmware%20updates/mvp
+* Github: https://github.com/flueke/mvp
 
 * Build requirements:
   - cmake
