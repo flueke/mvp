@@ -375,6 +375,25 @@ void MVPGui::_on_firmware_file_changed(const QString &filename)
     m_firmware = FirmwareArchive();
     append_to_log(QString(e.what()));
   }
+
+  // Enable/disable the area selection combo box based on the contents of the
+  // firmware archive.
+  // If there is at least one area specific part in the firmware and it does
+  // not have the area encoded in its name, then enable the area selection.
+  // Otherwise disable it.
+
+  bool enableAreaSelect = false;
+
+  for (const auto &part: m_firmware.get_area_specific_parts())
+  {
+      if (!part->get_area())
+      {
+          enableAreaSelect = true;
+          break;
+      }
+  }
+
+  m_flashwidget->set_area_select_enabled(enableAreaSelect);
 }
 
 void MVPGui::closeEvent(QCloseEvent *event)
