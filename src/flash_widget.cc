@@ -115,6 +115,11 @@ void FlashWidget::set_firmware_file(const QString &filename)
   emit firmware_file_changed(filename);
 }
 
+void FlashWidget::set_area_select_enabled(bool b)
+{
+    ui->combo_area->setEnabled(b);
+}
+
 void FlashWidget::on_pb_open_file_clicked()
 {
   QString dir = QStandardPaths::standardLocations(
