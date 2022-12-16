@@ -135,6 +135,9 @@ void BasicFlash::read_page(const Address &addr, uchar section,
   //if (addr[0] != 0)
   //  throw std::invalid_argument("read_page: address is not page aligned (a0!=0)");
 
+  qDebug() << "read_page: addr =" << addr << ", section =" << static_cast<uint32_t>(section)
+    << ", dest.size() =" << dest.size() << ", timeout_ms =" << timeout_ms;
+
   auto len = dest.size();
 
   if (len == 0)
