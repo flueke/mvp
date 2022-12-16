@@ -444,7 +444,15 @@ QVector<uchar> Flash::read_memory(const Address &start, uchar section,
   while (remaining) {
     emit progress_changed(progress++);
 
+  #ifdef Q_OS_WIN
+    // Workaround for Qt versions starting from 5.12: reading larger amounts of
+    // data (e.g. a full 256 byte page) in one go leads to a read timeout.
+    // Dividing the page into samller  (32 byte) chunks fixes the problem.
+    // See https://bugreports.qt.io/browse/QTBUG-93865 for more info.
+    auto rl = std::min(constants::page_size / 8, remaining);
+  #else
     auto rl = std::min(constants::page_size, remaining);
+  #endif
     auto page_span = gsl::as_span(ret.data() + offset, rl);
     read_page(addr, section, page_span);
 
