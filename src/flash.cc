@@ -7,6 +7,20 @@ namespace mesytec
 namespace mvp
 {
 
+size_t get_default_mem_read_chunk_size()
+{
+#ifdef Q_OS_WIN
+  // Workaround for Qt versions starting from 5.12: reading larger amounts of
+  // data (e.g. a full 256 byte page) in one go leads to a read timeout.
+  // Dividing the page into smaller  chunks fixes the problem.
+  // See https://bugreports.qt.io/browse/QTBUG-93865 for more info.
+  const size_t chunk_size = constants::page_size / 8;
+#else
+  const size_t chunk_size = constants::page_size;
+#endif
+  return chunk_size;
+}
+
 using constants::access_code;
 
 void BasicFlash::nop()
@@ -423,11 +437,12 @@ void Flash::write_memory(const Address &start, uchar section, const gsl::span<uc
 }
 
 QVector<uchar> Flash::read_memory(const Address &start, uchar section,
-  size_t len, EarlyReturnFun early_return_fun)
+  size_t len, size_t chunk_size, EarlyReturnFun early_return_fun)
 {
   qDebug() << "read_memory: start =" << start
            << ", section =" << section
            << ", len =" << len
+           << ", chunk_size =" << chunk_size
            << ", early return function set =" << bool(early_return_fun);
 
   QVector<uchar> ret(len);
@@ -436,7 +451,8 @@ QVector<uchar> Flash::read_memory(const Address &start, uchar section,
   size_t remaining = len;
   size_t offset    = 0;
 
-  emit progress_range_changed(0, std::max(static_cast<int>(remaining / constants::page_size), 1));
+
+  emit progress_range_changed(0, std::max(static_cast<int>(remaining / chunk_size), 1));
   int progress = 0;
 
   set_verbose(false);
@@ -444,15 +460,7 @@ QVector<uchar> Flash::read_memory(const Address &start, uchar section,
   while (remaining) {
     emit progress_changed(progress++);
 
-  #ifdef Q_OS_WIN
-    // Workaround for Qt versions starting from 5.12: reading larger amounts of
-    // data (e.g. a full 256 byte page) in one go leads to a read timeout.
-    // Dividing the page into samller  (32 byte) chunks fixes the problem.
-    // See https://bugreports.qt.io/browse/QTBUG-93865 for more info.
-    auto rl = std::min(constants::page_size / 8, remaining);
-  #else
-    auto rl = std::min(constants::page_size, remaining);
-  #endif
+    auto rl = std::min(chunk_size, remaining);
     auto page_span = gsl::as_span(ret.data() + offset, rl);
     read_page(addr, section, page_span);
 
@@ -479,7 +487,7 @@ VerifyResult Flash::verify_memory(const Address &start, uchar section, const gsl
     return res.first != page.end();
   };
 
-  auto mem = read_memory(start, section, data.size(), fun);
+  auto mem = read_memory(start, section, data.size(), get_default_mem_read_chunk_size(), fun);
   auto res = std::mismatch(mem.begin(), mem.end(), data.begin());
 
   if (res.first == mem.end())
@@ -507,7 +515,7 @@ VerifyResult Flash::blankcheck_section(uchar section, size_t size)
     return it != page.end();
   };
 
-  auto mem = read_memory({0, 0, 0}, section, size, fun);
+  auto mem = read_memory({0, 0, 0}, section, size, get_default_mem_read_chunk_size(), fun);
   auto it  = std::find_if(mem.begin(), mem.end(), [](uchar c) { return c != 0xff; });
   auto ret = (it == mem.end() ? VerifyResult() : VerifyResult(it - mem.begin(), 0xff, *it));
 
@@ -525,7 +533,7 @@ KeyMap Flash::read_keys()
   for (size_t i=0; i<constants::max_keys; ++i) {
 
     auto addr = Address(i * constants::keys_offset);
-    auto mem  = read_memory(addr, constants::keys_section, keys::total_bytes);
+    auto mem  = read_memory(addr, constants::keys_section, keys::total_bytes, get_default_mem_read_chunk_size());
     auto it   = std::find_if(mem.begin(), mem.end(), [](uchar c) { return c != 0xff; });
 
     if (it == mem.end())
@@ -559,7 +567,19 @@ QSet<size_t> Flash::get_free_key_slots()
 
 OTP Flash::read_otp()
 {
-  auto mem = read_memory({0, 0, 0}, constants::otp_section, otp::total_bytes);
+#ifdef Q_OS_WIN
+  // Workaround for Qt versions starting from 5.12: reading larger amounts of
+  // data (e.g. a full 256 byte page) in one go leads to a read timeout.
+  // Dividing the page into smaller  chunks fixes the problem.
+  // See https://bugreports.qt.io/browse/QTBUG-93865 for more info.
+  const size_t chunk_size = constants::page_size / 4;
+#else
+  const size_t chunk_size = constants::page_size;
+#endif
+
+  auto mem = read_memory({0, 0, 0}, constants::otp_section, otp::total_bytes, chunk_size);
+
+  qDebug() << "read_otp() data:\n" << format_bytes(mem);
 
   return OTP::from_flash_memory(mem);
 }
