@@ -479,7 +479,7 @@ void MVPGui::on_actionAbout_triggered()
 
     layout->addWidget(new QLabel(QSL("mvp - Mesytec Programmer")));
     layout->addWidget(new QLabel(QString("Version %1").arg(g_GIT_VERSION)));
-    layout->addWidget(new QLabel(QSL("© 2015-2017 mesytec GmbH & Co. KG")));
+    layout->addWidget(new QLabel(QSL("© 2015-2023 mesytec GmbH & Co. KG")));
     layout->addWidget(new QLabel(QSL("Authors: F. Lüke")));
 
     {
