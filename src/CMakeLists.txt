@@ -12,18 +12,22 @@ find_package(Boost 1.56 REQUIRED)
 # quazip
 find_path(QUAZIP_INCLUDE_DIR
     NAMES quazip.h
-    PATH_SUFFIXES quazip quazip-qt5 quazip5)
+    PATH_SUFFIXES quazip quazip-qt5 quazip5
+    QuaZip-Qt5-1.1/quazip
+    QuaZip-Qt5-1.3/quazip
+    )
 
-include_directories(${QUAZIP_INCLUDE_DIR})
+#include_directories(${QUAZIP_INCLUDE_DIR})
 
-find_library(QUAZIP_QT5_RELEASE NAMES quazip quazip-qt5 quazip5)
+find_library(QUAZIP_QT5_RELEASE NAMES quazip quazip-qt5 quazip5 quazip1-qt5)
 find_library(QUAZIP_QT5_DEBUG NAMES quazipd quazip-qt5d quazip5d)
 
 if (WIN32 OR QUAZIP_QT5_DEBUG)
-    set(QUAZIP_QT5
-        optimized ${QUAZIP_QT5_RELEASE}
-        debug ${QUAZIP_QT5_DEBUG}
-        )
+    if (QUAZIP_QT5_DEBUG)
+        set(QUAZIP_QT5 optimized ${QUAZIP_QT5_RELEASE} debug ${QUAZIP_QT5_DEBUG})
+    else()
+        set(QUAZIP_QT5 optimized ${QUAZIP_QT5_RELEASE} debug ${QUAZIP_QT5_RELEASE})
+    endif()
 else()
     set(QUAZIP_QT5 ${QUAZIP_QT5_RELEASE})
 endif()

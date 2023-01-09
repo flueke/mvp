@@ -91,7 +91,7 @@ void FlashWidget::set_available_ports(const PortInfoList &ports)
     idx = idx >= 0 ? idx : 0;
   }
 
-  if (ports[idx].serialNumber().isEmpty())
+  if (idx < ports.size() && ports[idx].serialNumber().isEmpty())
   {
     // The previously selected port does not have a serial number so it cannot
     // be a mesytec device. Look for the first port that has a serial number and
@@ -113,6 +113,11 @@ void FlashWidget::set_firmware_file(const QString &filename)
 {
   ui->le_filename->setText(filename);
   emit firmware_file_changed(filename);
+}
+
+void FlashWidget::set_area_select_enabled(bool b)
+{
+    ui->combo_area->setEnabled(b);
 }
 
 void FlashWidget::on_pb_open_file_clicked()

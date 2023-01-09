@@ -38,6 +38,7 @@ class FlashWidget: public QWidget
     void set_input_box_enabled(bool b=true);
     void set_available_ports(const PortInfoList &ports);
     void set_firmware_file(const QString &);
+    void set_area_select_enabled(bool b=true);
 
   private slots:
     void on_pb_open_file_clicked();
