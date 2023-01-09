@@ -12,6 +12,8 @@ namespace mesytec
 {
 namespace mvp
 {
+  size_t get_default_mem_read_chunk_size();
+
   class FlashInstructionError: public std::runtime_error
   {
     public:
@@ -286,7 +288,7 @@ namespace mvp
         EarlyReturnFun;
 
       QVector<uchar> read_memory(const Address &start, uchar section,
-        size_t len, EarlyReturnFun f = nullptr);
+        size_t len, size_t chunk_size, EarlyReturnFun f = nullptr);
 
       VerifyResult verify_memory(const Address &start, uchar section,
         const gsl::span<uchar> data);
