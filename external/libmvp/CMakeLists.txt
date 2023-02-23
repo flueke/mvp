@@ -13,8 +13,8 @@ add_subdirectory(external)
 add_subdirectory(src)
 add_subdirectory(test)
 enable_testing()
-add_test(NAME libmvp-test COMMAND testrunner)
+add_test(NAME libmvp-test COMMAND libmvp_testrunner)
 
-add_dependencies(testrunner libmvp)
+#add_dependencies(testrunner libmvp)
 
 # vim:tw=0

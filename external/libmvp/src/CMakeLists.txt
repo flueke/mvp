@@ -1,12 +1,10 @@
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
-find_package(Qt5Concurrent REQUIRED)
-find_package(Qt5Gui REQUIRED)
-find_package(Qt5SerialPort REQUIRED)
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Concurrent Gui Network SerialPort Widgets)
 find_package(Boost 1.56 REQUIRED)
 
 # quazip
@@ -15,6 +13,7 @@ find_path(QUAZIP_INCLUDE_DIR
     PATH_SUFFIXES quazip quazip-qt5 quazip5
     QuaZip-Qt5-1.1/quazip
     QuaZip-Qt5-1.3/quazip
+    QuaZip-Qt5-1.4/quazip
     )
 
 #include_directories(${QUAZIP_INCLUDE_DIR})
@@ -37,9 +36,9 @@ message("-- Using QUAZIP_QT5=${QUAZIP_QT5}")
 
 include_directories(${Boost_INCLUDE_DIRS} ${QUAZIP_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-
-set(LIBMVP_SOURCES
+add_library(libmvp
+    flash_widget.ui
+    resources.qrc
     file_dialog.cc
     firmware.cc
     firmware_ops.cc
@@ -51,33 +50,22 @@ set(LIBMVP_SOURCES
     mdpp16.cc
     port_helper.cc
     util.cc
-    )
+)
 
-qt5_wrap_ui(UIC_OUT flash_widget.ui)
-qt5_add_resources(RC_OUT resources.qrc)
-
-set(LIBMVP_TARGET "libmvp")
-
-add_library(${LIBMVP_TARGET} ${LIBMVP_SOURCES} ${UIC_OUT} ${RC_OUT})
-
-set_target_properties(${LIBMVP_TARGET} PROPERTIES
-  OUTPUT_NAME "mvp"
-#  INCLUDE_PATH ${CMAKE_CURRENT_SOURCE_DIR}
-#  LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR}
-  )
-
-qt5_use_modules(${LIBMVP_TARGET}
-  Concurrent
-  Gui
-  SerialPort
-  Widgets
-  )
-
-target_link_libraries(${LIBMVP_TARGET} ${QUAZIP_QT5})
+target_compile_features(libmvp PRIVATE cxx_std_17)
+set_target_properties(libmvp PROPERTIES OUTPUT_NAME "mvp")
+target_link_libraries(libmvp
+    PUBLIC ${QUAZIP_QT5}
+    PUBLIC Qt5::Concurrent
+    PUBLIC Qt5::Gui
+    PUBLIC Qt5::Network
+    PUBLIC Qt5::SerialPort
+    PUBLIC Qt5::Widgets
+)
 
 include(GenerateExportHeader)
-generate_export_header(${LIBMVP_TARGET})
+generate_export_header(libmvp)
 
-install(TARGETS ${LIBMVP_TARGET} DESTINATION lib)
+install(TARGETS libmvp DESTINATION lib)
 
 # vim:tw=0
