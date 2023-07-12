@@ -24,6 +24,9 @@ FlashWidget::FlashWidget(QWidget *parent)
 
   connect(ui->pb_start, SIGNAL(clicked()),
       this, SIGNAL(start_button_clicked()));
+
+  connect(ui->combo_serial_ports, SIGNAL(currentIndexChanged(int)),
+      this, SLOT(on_combo_serial_port_index_changed(int)));
 }
 
 bool FlashWidget::is_start_button_enabled() const
@@ -142,6 +145,12 @@ void FlashWidget::on_pb_open_file_clicked()
   }
 
   set_firmware_file(filename);
+}
+
+void FlashWidget::on_combo_serial_port_index_changed(int idx)
+{
+  (void) idx;
+  emit serial_port_changed(get_serial_port());
 }
 
 } // ns mvp

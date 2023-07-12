@@ -42,6 +42,7 @@ class FlashWidget: public QWidget
 
   private slots:
     void on_pb_open_file_clicked();
+    void on_combo_serial_port_index_changed(int idx);
 
   private:
     Ui::FlashWidget *ui;
