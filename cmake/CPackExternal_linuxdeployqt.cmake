@@ -43,32 +43,18 @@ message("-- CPackExternal_linuxdeployqt: linuxdeployqt step done")
 # alternative would be to pass "-unsupported-bundle-everything" to
 # linuxdeployqt but that would also bundle glibc.
 file(GET_RUNTIME_DEPENDENCIES
-    RESOLVED_DEPENDENCIES_VAR DEPLOY_ADDITIONAL_FILES
+    RESOLVED_DEPENDENCIES_VAR DEPLOY_ADDITIONAL_LIBS
     POST_INCLUDE_REGEXES ".*libgcc_s\\.so*" ".*libstdc\\+\\+\\.so*"
     POST_EXCLUDE_REGEXES ".*"
     EXECUTABLES ${DEPLOY_BINARY}
 )
 
-# Find and copy graphviz plugins and config file.
-find_library(GV_CORE_PLUGIN gvplugin_core PATH_SUFFIXES graphviz x86_64-linux-gnu/graphviz REQUIRED)
-find_library(GV_DOT_PLUGIN gvplugin_dot_layout PATH_SUFFIXES graphviz x86_64-linux-gnu/graphviz REQUIRED)
+message("-- CPackExternal_linuxdeployqt: Copying additional libraries into staging directory: ${DEPLOY_ADDITIONAL_LIBS}")
 
-message("-- Found graphviz core plugin: ${GV_CORE_PLUGIN}")
-message("-- Found graphviz dot plugin: ${GV_DOT_PLUGIN}")
-
-list(APPEND DEPLOY_ADDITIONAL_FILES ${GV_CORE_PLUGIN} ${GV_DOT_PLUGIN})
-message("-- CPackExternal_linuxdeployqt: Copying additional libraries and files
-            into staging directory: ${DEPLOY_ADDITIONAL_LIBS}")
-
-file(COPY ${DEPLOY_ADDITIONAL_FILES}
+file(COPY ${DEPLOY_ADDITIONAL_LIBS}
     DESTINATION "${CPACK_TEMPORARY_DIRECTORY}/lib"
     FOLLOW_SYMLINK_CHAIN
 )
-
-# Copy our custom graphviz plugin config file directly into the lib directory.
-configure_file(${SOURCE_DIR}/cmake/graphviz-config6a
-               ${CPACK_TEMPORARY_DIRECTORY}/lib/config6a
-               COPYONLY)
 
 set(PACKAGE_OUTPUT_DIR "${CPACK_TOPLEVEL_DIRECTORY}/packages")
 set(PACKAGE_ARCHIVE_FILE "${PACKAGE_OUTPUT_DIR}/${CPACK_PACKAGE_FILE_NAME}.tar.bz2")

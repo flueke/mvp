@@ -42,6 +42,6 @@ qt5_use_modules(${MVP_TARGET}
 
 target_link_libraries(${MVP_TARGET} libmvp)
 
-install(TARGETS ${MVP_TARGET} DESTINATION bin COMPONENT applications)
+install(TARGETS ${MVP_TARGET} DESTINATION bin)
 
 # vim: tw=0
