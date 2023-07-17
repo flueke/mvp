@@ -18,7 +18,7 @@ set(CPACK_STRIP_FILES TRUE)
 set(CPACK_PACKAGE_CHECKSUM SHA256)
 
 # Include the branch name in the package if it's not the main branch.
-if (GIT_BRANCH AND NOT "${GIT_BRANCH}" STREQUAL "main")
+if (GIT_BRANCH AND NOT ("${GIT_BRANCH}" STREQUAL "main" OR "${GIT_BRANCH}" STREQUAL "master"))
     string(REPLACE "/" "_" GIT_BRANCH ${GIT_BRANCH})
 
     set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}-${GIT_BRANCH}")
