@@ -39,6 +39,7 @@ if (WIN32)
     file(MAKE_DIRECTORY ${CPACK_OUTPUT_FILE_PREFIX})
 else()
     set(CPACK_OUTPUT_FILE_PREFIX "packages")
+    set(CPACK_MONOLITHIC_INSTALL ON)
     set(LINUXDEPLOYQT_EXECUTABLE "@LINUXDEPLOYQT_EXECUTABLE@")
     # Sadly can only specifiy a single binary here which then dictates which
     # libraries linuxdeployqt picks up.
