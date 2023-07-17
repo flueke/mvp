@@ -29,7 +29,20 @@ SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/")
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 git_describe(GIT_VERSION "--always")
-string(REGEX MATCH "^[0-9.]+(-beta|-rc[0-9]*)?(-[0-9]+)?" GIT_VERSION_SHORT ${GIT_VERSION})
+string(REGEX REPLACE "^v" "" GIT_VERSION ${GIT_VERSION})
+string(REGEX MATCH "^[0-9.]+(-beta[0-9]*|-rc[0-9]*|-dev[0-9]*)?(-[0-9]+)?" GIT_VERSION_SHORT ${GIT_VERSION})
+string(REGEX MATCH "^[0-9.]+" GIT_VERSION_TAG ${GIT_VERSION})
+
+execute_process(
+    COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_BRANCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+message("-- GIT_VERSION=${GIT_VERSION}")
+message("-- GIT_VERSION_SHORT=${GIT_VERSION_SHORT}")
+message("-- GIT_VERSION_TAG=${GIT_VERSION_TAG}")
+message("-- GIT_BRANCH=${GIT_BRANCH}")
 
 add_subdirectory(external)
 
@@ -40,55 +53,62 @@ add_subdirectory(src)
 
 install(FILES "${CMAKE_SOURCE_DIR}/LICENSE.TXT" DESTINATION .)
 
+# CPack configuration used for 'make package'
+
 if ("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
     set(PACKAGE_ARCH_STRING "x64")
 else()
     set(PACKAGE_ARCH_STRING "x32")
 endif()
 
-# CPack configuration used for 'make package'
-if (WIN32)
-  set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${GIT_VERSION}")
-
-  # Reusing the deploy directory from mvme
-  set(DEPLOY_DIR "c:/src/mvme2-deploy/windows/mvme-${PACKAGE_ARCH_STRING}-libusb-0.1-${CMAKE_BUILD_TYPE}/")
-  if (EXISTS "${DEPLOY_DIR}")
-      install(DIRECTORY "${DEPLOY_DIR}" DESTINATION . USE_SOURCE_PERMISSIONS)
-  endif()
-else(WIN32)
-  execute_process(COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE)
-  set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${GIT_VERSION}-${ARCHITECTURE}")
-
-  # Reusing the deploy directory from mvme
-  if (EXISTS "$ENV{HOME}/src/mvme2-deploy/linux/mvme-${PACKAGE_ARCH_STRING}-libusb-0.1/")
-      # Install additional deployment files: shared objects, qt plugins, etc.
-      install(DIRECTORY "$ENV{HOME}/src/mvme2-deploy/linux/mvme-${PACKAGE_ARCH_STRING}-libusb-0.1/"
-          DESTINATION .
-          USE_SOURCE_PERMISSIONS)
-  endif()
-endif(WIN32)
-
 set(CPACK_PACKAGE_VERSION "${GIT_VERSION_SHORT}")
 set(CPACK_PACKAGE_VENDOR "mesytec")
-set(CPACK_PACKAGE_EXECUTABLES "mvp;mvp")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "mvp")
-set(CPACK_OUTPUT_FILE_PREFIX "packages")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/external/libmvp/src/resources/gpl-notice.txt")
-set(CPACK_STRIP_FILES TRUE)
-set(CPACK_MONOLITHIC_INSTALL TRUE)
 
 if (WIN32)
-    set(CPACK_GENERATOR "ZIP" "NSIS")
+    option(MVP_CPACK_INSTALL_DEPLOY_FILES
+        "Install additional library files from a special deploy directory." OFF)
+
+    set(MVME_CPACK_DEPLOY_DIR "c:/src/mvme2-deploy/windows/mvme-${PACKAGE_ARCH_STRING}-libusb-0.1-Release"
+        CACHE PATH "Directory containing additional files to be deployed."
+    )
+
+    if (MVP_CPACK_INSTALL_DEPLOY_FILES)
+        install(DIRECTORY "${MVME_CPACK_DEPLOY_DIR}/" DESTINATION . USE_SOURCE_PERMISSIONS)
+    endif()
+
+    set(CPACK_GENERATOR "NSIS;ZIP")
+    set(CPACK_SOURCE_GENERATOR "ZIP")
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL "ON")
     set(CPACK_NSIS_PACKAGE_NAME "mvp")
     set(CPACK_NSIS_MUI_FINISHPAGE_RUN "mvp.exe")
+    set(CPACK_NSIS_PACKAGE_NAME "mvme")
+    set(CPACK_NSIS_MUI_FINISHPAGE_RUN "bin\\\\mvme.exe")
     set(CPACK_NSIS_URL_INFO_ABOUT "http://www.mesytec.com")
     set(CPACK_NSIS_CONTACT "info@mesytec.com")
-    set(CPACK_SOURCE_GENERATOR "ZIP")
-else(WIN32)
-    set(CPACK_GENERATOR "TBZ2")
+else()
+    option(MVP_CPACK_USE_LINUXDEPLOYQT
+        "Use 'linuxdeployqt' to create universal binary packages." OFF)
+
     set(CPACK_SOURCE_GENERATOR "TBZ2")
-endif(WIN32)
+
+    if (MVP_CPACK_USE_LINUXDEPLOYQT)
+        # Find linuxdeployqt here to error out early in case it's missing.
+        find_program(LINUXDEPLOYQT_EXECUTABLE linuxdeployqt REQUIRED)
+        set(CPACK_GENERATOR "External")
+        set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_SOURCE_DIR}/cmake/CPackExternal_linuxdeployqt.cmake")
+        set(CPACK_EXTERNAL_ENABLE_STAGING TRUE)
+    else()
+        set(CPACK_GENERATOR "TBZ2")
+    endif()
+endif()
+
+# CPACK_PROJECT_CONFIG_FILE
+# File included at cpack time, once per generator after setting CPACK_GENERATOR
+# to the actual generator being used; allows per-generator setting of CPACK_*
+# variables at cpack time.
+# Default: ${PROJECT_BINARY_DIR}/CPackOptions.cmake
+configure_file("CPackOptions.cmake.in" "${PROJECT_BINARY_DIR}/CPackOptions.cmake" @ONLY)
+set(CPACK_PROJECT_CONFIG_FILE "${PROJECT_BINARY_DIR}/CPackOptions.cmake")
 
 include(CPack)
 

@@ -1,0 +1,47 @@
+# vim:ft=cmake
+
+#include(CMakePrintHelpers)
+#cmake_print_variables(CPACK_TEMPORARY_DIRECTORY)
+#cmake_print_variables(CPACK_TOPLEVEL_DIRECTORY)
+#cmake_print_variables(CPACK_PACKAGE_DIRECTORY)
+#cmake_print_variables(CPACK_PACKAGE_FILE_NAME)
+
+set(PROJECT_NAME        "@CMAKE_PROJECT_NAME@")
+set(PACKAGE_ARCH_STRING "@PACKAGE_ARCH_STRING@")
+set(PACKAGE_VERSION     "@GIT_VERSION_SHORT@")
+set(SOURCE_DIR          "@CMAKE_SOURCE_DIR@")
+set(GIT_BRANCH          "@GIT_BRANCH@")
+
+set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}-${PACKAGE_ARCH_STRING}")
+set(CPACK_RESOURCE_FILE_LICENSE "${SOURCE_DIR}/LICENSE-SHORT.TXT")
+set(CPACK_STRIP_FILES TRUE)
+set(CPACK_PACKAGE_CHECKSUM SHA256)
+
+# Include the branch name in the package if it's not the main branch.
+if (GIT_BRANCH AND NOT "${GIT_BRANCH}" STREQUAL "main")
+    string(REPLACE "/" "_" GIT_BRANCH ${GIT_BRANCH})
+
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}-${GIT_BRANCH}")
+endif()
+
+#set(CPACK_PACKAGE_EXECUTABLES "mvme;mvme")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "mvp")
+
+if (WIN32)
+    # https://cmake.org/cmake/help/v3.10/module/CPackNSIS.html
+
+    set(CPACK_OUTPUT_FILE_PREFIX "c:\\src\\mvp-packages")
+    set(CPACK_CMAKE_GENERATOR "MSYS Makefiles")
+    set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "mesytec-mvp")
+    set(CPACK_NSIS_DISPLAY_NAME "mesytec mvp")
+    set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\mvp.exe")
+    #set(CPACK_MONOLITHIC_INSTALL 1)
+    file(MAKE_DIRECTORY ${CPACK_OUTPUT_FILE_PREFIX})
+else()
+    set(CPACK_OUTPUT_FILE_PREFIX "packages")
+    set(LINUXDEPLOYQT_EXECUTABLE "@LINUXDEPLOYQT_EXECUTABLE@")
+    # Sadly can only specifiy a single binary here which then dictates which
+    # libraries linuxdeployqt picks up.
+    set(DEPLOY_BINARY "bin/mvp")
+endif()
+
