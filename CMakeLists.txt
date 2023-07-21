@@ -100,21 +100,19 @@ if (WIN32)
     option(MVP_CPACK_INSTALL_DEPLOY_FILES
         "Install additional library files from a special deploy directory." OFF)
 
-    set(MVME_CPACK_DEPLOY_DIR "c:/src/mvme2-deploy/windows/mvme-${PACKAGE_ARCH_STRING}-libusb-0.1-Release"
+    set(MVP_CPACK_DEPLOY_DIR "c:/src/mvme2-deploy/windows/mvme-${PACKAGE_ARCH_STRING}-libusb-0.1-Release"
         CACHE PATH "Directory containing additional files to be deployed."
     )
 
     if (MVP_CPACK_INSTALL_DEPLOY_FILES)
-        install(DIRECTORY "${MVME_CPACK_DEPLOY_DIR}/" DESTINATION . USE_SOURCE_PERMISSIONS)
+        install(DIRECTORY "${MVP_CPACK_DEPLOY_DIR}/" DESTINATION . USE_SOURCE_PERMISSIONS)
     endif()
 
     set(CPACK_GENERATOR "NSIS;ZIP")
     set(CPACK_SOURCE_GENERATOR "ZIP")
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL "ON")
     set(CPACK_NSIS_PACKAGE_NAME "mvp")
-    set(CPACK_NSIS_MUI_FINISHPAGE_RUN "mvp.exe")
-    set(CPACK_NSIS_PACKAGE_NAME "mvme")
-    set(CPACK_NSIS_MUI_FINISHPAGE_RUN "bin\\\\mvme.exe")
+    set(CPACK_NSIS_MUI_FINISHPAGE_RUN "bin\\\\mvp.exe")
     set(CPACK_NSIS_URL_INFO_ABOUT "http://www.mesytec.com")
     set(CPACK_NSIS_CONTACT "info@mesytec.com")
 else()
