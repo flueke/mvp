@@ -16,8 +16,6 @@ set(MVP_SOURCES
 
 qt5_wrap_ui(UIC_OUT gui.ui)
 
-set(MVP_TARGET "mvp")
-
 # Git Version file generation
 configure_file("git_sha1.cc.in" "git_sha1.cc" @ONLY)
 set(GIT_VERSION_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/git_sha1.cc")
@@ -30,18 +28,18 @@ if (WIN32)
     SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
 endif()
 
-add_executable(${MVP_TARGET} WIN32 ${MVP_SOURCES} ${UIC_OUT} ${GIT_VERSION_SOURCE} ${RES_FILES})
+add_executable(mvp WIN32 ${MVP_SOURCES} ${UIC_OUT} ${GIT_VERSION_SOURCE} ${RES_FILES})
 add_dependencies(mvp libmvp)
 
-qt5_use_modules(${MVP_TARGET}
+qt5_use_modules(mvp
   Concurrent
   Gui
   SerialPort
   Widgets
   )
 
-target_link_libraries(${MVP_TARGET} libmvp)
+target_link_libraries(mvp libmvp)
 
-install(TARGETS ${MVP_TARGET} DESTINATION bin)
+install(TARGETS mvp RUNTIME DESTINATION bin)
 
 # vim: tw=0
