@@ -1,6 +1,6 @@
 # vim:ft=cmake
 
-include(CMakePrintHelpers)
+#include(CMakePrintHelpers)
 #cmake_print_variables(CPACK_TEMPORARY_DIRECTORY)
 #cmake_print_variables(CPACK_TOPLEVEL_DIRECTORY)
 #cmake_print_variables(CPACK_PACKAGE_DIRECTORY)

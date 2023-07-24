@@ -40,6 +40,6 @@ qt5_use_modules(mvp
 
 target_link_libraries(mvp libmvp)
 
-install(TARGETS mvp RUNTIME DESTINATION bin)
+install(TARGETS mvp RUNTIME DESTINATION bin LIBRARY DESTINATION lib)
 
 # vim: tw=0
