@@ -95,6 +95,8 @@ endif()
 
 set(CPACK_PACKAGE_VERSION ${VERSION})
 set(CPACK_PACKAGE_VENDOR "mesytec")
+set(CPACK_PACKAGE_EXECUTABLES mvp;mvp)
+set(CPACK_THREADS 0)
 
 if (WIN32)
     option(MVP_CPACK_INSTALL_DEPLOY_FILES
@@ -112,7 +114,7 @@ if (WIN32)
     set(CPACK_SOURCE_GENERATOR "ZIP")
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL "ON")
     set(CPACK_NSIS_PACKAGE_NAME "mvp")
-    set(CPACK_NSIS_MUI_FINISHPAGE_RUN "bin\\\\mvp.exe")
+    set(CPACK_NSIS_MUI_FINISHPAGE_RUN "mvp.exe")
     set(CPACK_NSIS_URL_INFO_ABOUT "http://www.mesytec.com")
     set(CPACK_NSIS_CONTACT "info@mesytec.com")
 else()
