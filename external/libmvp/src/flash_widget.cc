@@ -76,14 +76,18 @@ void FlashWidget::set_available_ports(const PortInfoList &ports)
   ui->combo_serial_ports->clear();
 
   for (auto &info: ports) {
-    if (!info.serialNumber().isEmpty()) {
-      ui->combo_serial_ports->addItem(
-        info.portName() + " - " + info.serialNumber(),
-        info.portName());
+    if (!info.serialNumber().isEmpty())
+    {
+      QString s;
+
+      if (!info.description().isEmpty())
+        s = QStringLiteral("%1 - %2 - %3").arg(info.portName()).arg(info.description()).arg(info.serialNumber());
+      else
+        s = QStringLiteral("%1 - %2").arg(info.portName()).arg(info.serialNumber());
+
+      ui->combo_serial_ports->addItem(s, info.portName());
     } else {
-      ui->combo_serial_ports->addItem(
-          info.portName(),
-          info.portName());
+      ui->combo_serial_ports->addItem(info.portName(), info.portName());
     }
   }
 
