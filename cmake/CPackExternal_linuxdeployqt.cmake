@@ -43,15 +43,16 @@ message("-- CPackExternal_linuxdeployqt: linuxdeployqt step done")
 # alternative would be to pass "-unsupported-bundle-everything" to
 # linuxdeployqt but that would also bundle glibc.
 file(GET_RUNTIME_DEPENDENCIES
-    RESOLVED_DEPENDENCIES_VAR DEPLOY_ADDITIONAL_LIBS
+    RESOLVED_DEPENDENCIES_VAR DEPLOY_ADDITIONAL_FILES
     POST_INCLUDE_REGEXES ".*libgcc_s\\.so*" ".*libstdc\\+\\+\\.so*"
     POST_EXCLUDE_REGEXES ".*"
     EXECUTABLES ${DEPLOY_BINARY}
 )
 
-message("-- CPackExternal_linuxdeployqt: Copying additional libraries into staging directory: ${DEPLOY_ADDITIONAL_LIBS}")
+message("-- CPackExternal_linuxdeployqt: Copying additional libraries and files
+            into staging directory: ${DEPLOY_ADDITIONAL_FILES}")
 
-file(COPY ${DEPLOY_ADDITIONAL_LIBS}
+file(COPY ${DEPLOY_ADDITIONAL_FILES}
     DESTINATION "${CPACK_TEMPORARY_DIRECTORY}/lib"
     FOLLOW_SYMLINK_CHAIN
 )
