@@ -1,0 +1,3 @@
+[submodule "external/libmvp"]
+	path = external/libmvp
+	url = ../libmvp.git
