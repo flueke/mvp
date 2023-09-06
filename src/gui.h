@@ -67,7 +67,7 @@ class MVPGui: public QMainWindow
     Ui::MVPGui *ui;
 
     QObject *m_object_holder;
-    Flash *m_flash;
+    SerialPortFlash *m_flash;
     QSerialPort *m_port;
     PortHelper *m_port_helper;
     QTimer *m_port_refresh_timer;

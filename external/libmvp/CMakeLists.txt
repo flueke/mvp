@@ -11,9 +11,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/gsl-lite/include")
 
 add_subdirectory(external)
 add_subdirectory(src)
-add_subdirectory(test)
 enable_testing()
-add_test(NAME libmvp-test COMMAND libmvp_testrunner)
+add_subdirectory(test)
 
 #add_dependencies(testrunner libmvp)
 

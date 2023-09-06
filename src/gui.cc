@@ -34,7 +34,7 @@ MVPGui::MVPGui(QWidget *parent)
   : QMainWindow(parent)
   , ui(new Ui::MVPGui)
   , m_object_holder(new QObject)
-  , m_flash(new Flash(m_object_holder))
+  , m_flash(new SerialPortFlash(m_object_holder))
   , m_port(new QSerialPort(m_object_holder))
   , m_port_helper(new PortHelper(m_port, m_object_holder))
   , m_port_refresh_timer(new QTimer(m_object_holder))
@@ -66,11 +66,11 @@ MVPGui::MVPGui(QWidget *parent)
   connect(m_flash, SIGNAL(progress_changed(int)),
       m_progressbar, SLOT(setValue(int)), Qt::QueuedConnection);
 
-  connect(m_flash, &Flash::progress_text_changed, this, [=](const QString &text) {
+  connect(m_flash, &FlashInterface::progress_text_changed, this, [=](const QString &text) {
       append_to_log(text);
       }, Qt::QueuedConnection);
 
-  connect(m_flash, &Flash::statusbyte_received, this, [=](const uchar &ss) {
+  connect(m_flash, &FlashInterface::statusbyte_received, this, [=](const uchar &ss) {
     if (!bool(ss & status::inst_success)) {
       append_to_log(QString("statusbyte(bin)=%1, inst_success=%2, area=%3, dipsw=%4")
                     .arg(ss, 0, 2)
@@ -81,7 +81,7 @@ MVPGui::MVPGui(QWidget *parent)
   }, Qt::QueuedConnection);
 
 #if 0
-  connect(m_flash, &Flash::instruction_written, this, [=](const QVector<uchar> &data) {
+  connect(m_flash, &FlashInterface::instruction_written, this, [=](const QVector<uchar> &data) {
       qDebug() << "instruction written:" << format_bytes(data);
       append_to_log(QString("instruction %1 written")
         .arg(opcodes::op_to_string.value(*data.begin(), QString::number(*data.begin(), 16))));
@@ -154,7 +154,7 @@ void MVPGui::write_firmware()
     qDebug() << "Firmware: set area index" << area_index;
     m_flash->set_area_index(area_index);
 
-    FirmwareWriter fw_writer(m_firmware, m_port_helper, m_flash);
+    FirmwareWriter fw_writer(m_firmware, m_flash);
 
     connect(&fw_writer, SIGNAL(status_message(const QString &)),
         this, SLOT(append_to_log(const QString &)),
@@ -210,7 +210,6 @@ void MVPGui::handle_keys()
   auto keys_handler = std::unique_ptr<KeysHandler>(
       new KeysHandler(
         m_firmware,
-        m_port_helper,
         m_flash,
         m_object_holder));
 

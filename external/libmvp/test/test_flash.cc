@@ -31,7 +31,7 @@ void test_constructors()
   {
     T a(42, 98, 254);
     T b(a);
-    QVERIFY(a.a0() == b.a0()); 
+    QVERIFY(a.a0() == b.a0());
     QVERIFY(a.a1() == b.a1());
     QVERIFY(a.a2() == b.a2());
 
@@ -96,7 +96,7 @@ void TestFlash::test_key_from_flash_memory()
     std::transform(std::begin(str_data), std::end(str_data), std::back_inserter(data),
         [](char c) { return static_cast<uchar>(c); });
 
-    Key key = Key::from_flash_memory(gsl::as_span(data));
+    Key key = Key::from_flash_memory(gsl::span(data));
 
     QCOMPARE(key.get_prefix(), QString("MDPP16  "));
     QCOMPARE(key.get_sn(),  0x11121314u);
@@ -112,7 +112,7 @@ void TestFlash::test_key_from_flash_memory()
     std::transform(std::begin(str_data), std::end(str_data), std::back_inserter(data),
         [](char c) { return static_cast<uchar>(c); });
 
-    Key key = Key::from_flash_memory(gsl::as_span(data));
+    Key key = Key::from_flash_memory(gsl::span(data));
 
     QCOMPARE(key.get_prefix(), QString("MDPP16  "));
     QCOMPARE(key.get_sn(),  0x11121314u);
@@ -131,7 +131,7 @@ void TestFlash::test_key_from_flash_memory()
         [](char c) { return static_cast<uchar>(c); });
 
     QVERIFY_EXCEPTION_THROWN(
-      Key::from_flash_memory(gsl::as_span(data)),
+      Key::from_flash_memory(gsl::span(data)),
       KeyError);
   }
 }

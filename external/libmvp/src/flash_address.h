@@ -3,7 +3,7 @@
 
 #include <QString>
 #include <QDebug>
-#include <gsl.h>
+#include <gsl/gsl-lite.hpp>
 #include "flash_constants.h"
 
 namespace mesytec
@@ -20,6 +20,12 @@ namespace mvp
       Address(const Address &o): _data(o._data) {}
 
       explicit Address(uint32_t a) { set_value(a); }
+
+      constexpr Address &operator=(const Address &o)
+      {
+        _data = o._data;
+        return *this;
+      }
 
       uchar a0() const { return _data[0]; }
       uchar a1() const { return _data[1]; }
@@ -106,6 +112,7 @@ namespace mvp
       }
 
       QString to_string() const;
+      std::array<uchar, 3> data() const { return _data; }
 
     private:
       std::array<uchar, 3> _data = {{0, 0, 0}};
