@@ -8,10 +8,8 @@ namespace mesytec
 namespace mvp
 {
 
-class Flash;
-
-void run_instructions(const InstructionList &instructions, Flash *m_flash, uchar section,
-    size_t address_offset = 0);
+void run_instructions(const InstructionList &instructions, FlashInterface *m_flash,
+    uchar section, size_t address_offset = 0);
 void print_actions(const InstructionList &instructions);
 
 QVector<uchar> generate_memory(

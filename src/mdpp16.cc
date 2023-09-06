@@ -16,10 +16,10 @@ namespace mdpp16
 
 void format_calibration_data(const gsl::span<uchar> data, QTextStream &out)
 {
-  out << "offsets:" << endl;
+  out << "offsets:" << Qt::endl;
   format_offsets(data, out);
 
-  out << "prediffs:" << endl;
+  out << "prediffs:" << Qt::endl;
   format_prediffs({ std::begin(data) + offsets::total_bytes, std::end(data) }, out);
 }
 
@@ -51,7 +51,7 @@ void format_offsets(const gsl::span<uchar> data, QTextStream &out)
         out << qSetFieldWidth(6) << value << qSetFieldWidth(0);
 
         if (prediff == n_prediffs_used-1)
-          out << endl;
+          out << Qt::endl;
         else
           out << " ";
       }
@@ -82,7 +82,7 @@ void format_prediffs(const gsl::span<uchar> data, QTextStream &out)
       out << qSetFieldWidth(6) << value << qSetFieldWidth(0);
 
       if (prediff == n_prediffs_used-1)
-        out << endl;
+        out << Qt::endl;
       else
         out << " ";
     }
@@ -96,12 +96,12 @@ namespace mdpp32
 
 void format_calibration_data(const gsl::span<uchar> data, QTextStream &out)
 {
-  out << "offsets:" << endl;
+  out << "offsets:" << Qt::endl;
   format_offsets(data, out);
 
   qDebug() << __PRETTY_FUNCTION__ << "offsets::total_bytes_needed =" << offsets::total_bytes_needed;
 
-  out << "prediffs:" << endl;
+  out << "prediffs:" << Qt::endl;
   format_prediffs({ std::begin(data) + offsets::total_bytes_needed, std::end(data) }, out);
 }
 
@@ -140,7 +140,7 @@ void format_offsets(const gsl::span<uchar> data, QTextStream &out)
                 out << qSetFieldWidth(6) << value << qSetFieldWidth(0);
 
                 if (prediff == n_prediffs - 1)
-                    out << endl;
+                    out << Qt::endl;
                 else
                     out << " ";
             }
@@ -181,7 +181,7 @@ void format_prediffs(const gsl::span<uchar> data, QTextStream &out)
             out << qSetFieldWidth(6) << value << qSetFieldWidth(0);
 
             if (prediff == n_prediffs - 1)
-                out << endl;
+                out << Qt::endl;
             else
                 out << " ";
         }

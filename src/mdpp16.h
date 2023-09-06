@@ -1,7 +1,7 @@
 #ifndef UUID_ff7816fc_f3c7_440c_b9b7_28fc156bdfc0
 #define UUID_ff7816fc_f3c7_440c_b9b7_28fc156bdfc0
 
-#include <gsl.h>
+#include <gsl/gsl-lite.hpp>
 #include <QtGlobal>
 
 class QTextStream;

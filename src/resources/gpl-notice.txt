@@ -1,5 +1,6 @@
 mvp - Mesytec Programmer
-Copyright (C) 2015-2017 mesytec GmbH & Co. KG <info@mesytec.com>
+
+Copyright (C) 2015-present mesytec GmbH & Co. KG <info@mesytec.com>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

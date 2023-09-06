@@ -1,4 +1,5 @@
 #include "firmware_ops.h"
+#include <algorithm>
 #include "flash.h"
 #include "instruction_interpreter.h"
 
@@ -8,10 +9,9 @@ namespace mvp
 {
 
 FirmwareWriter::FirmwareWriter(const FirmwareArchive &firmware,
-    PortHelper *port_helper, Flash *flash, QObject *parent)
+    FlashInterface *flash, QObject *parent)
   : QObject(parent)
   , m_firmware(firmware)
-  , m_port_helper(port_helper)
   , m_flash(flash)
 {}
 
@@ -77,7 +77,7 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
       emit status_message(QString("File %1: writing %2 bytes of data")
           .arg(pp->get_filename()).arg(contents.size()));
 
-      m_flash->write_memory({0, 0, 0}, section, gsl::as_span(contents));
+      m_flash->write_memory({0, 0, 0}, section, gsl::span(contents));
     }
 
     if (!contents.isEmpty() && do_verify()) {
@@ -85,7 +85,7 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
           .arg(pp->get_filename()));
 
 
-      auto res = m_flash->verify_memory({0, 0, 0}, section, gsl::as_span(contents));
+      auto res = m_flash->verify_memory({0, 0, 0}, section, gsl::span(contents));
       if (!res) throw FlashVerificationError(res);
     }
   } else if (is_instruction_part(pp) && !is_key_part(pp)) {
@@ -105,14 +105,14 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
         emit status_message(QString("File %1: writing %2 bytes of data")
             .arg(pp->get_filename()).arg(mem.size()));
 
-        m_flash->write_memory({0, 0, 0}, section, gsl::as_span(mem));
+        m_flash->write_memory({0, 0, 0}, section, gsl::span(mem));
       }
 
       if (do_verify()) {
         emit status_message(QString("File %1: verifying memory")
             .arg(pp->get_filename()));
 
-        auto res = m_flash->verify_memory({0, 0, 0}, section, gsl::as_span(mem));
+        auto res = m_flash->verify_memory({0, 0, 0}, section, gsl::span(mem));
 
         qDebug() << res.to_string();
 
@@ -134,7 +134,7 @@ void FirmwareWriter::write_part(const FirmwarePartPtr &pp,
 
         auto mem = generate_memory(instructions);
 
-        auto res = m_flash->verify_memory({0, 0, 0}, section, gsl::as_span(mem));
+        auto res = m_flash->verify_memory({0, 0, 0}, section, gsl::span(mem));
         qDebug() << res.to_string();
         if (!res) throw FlashVerificationError(res);
       }
@@ -185,11 +185,9 @@ KeyList KeysInfo::get_new_firmware_keys() const
 
 KeysHandler::KeysHandler(
     const FirmwareArchive &firmware,
-    gsl::not_null<PortHelper *> port_helper,
-    gsl::not_null<Flash *> flash,
+    gsl::not_null<FlashInterface *> flash,
     QObject *parent)
   : m_firmware(firmware)
-  , m_port_helper(port_helper)
   , m_flash(flash)
 {
 }
@@ -266,7 +264,7 @@ void KeysHandler::write_keys()
     m_flash->erase_section(constants::keys_section);
   }
 
-  auto free_slots = m_flash->get_free_key_slots().toList();
+  auto free_slots = m_flash->get_free_key_slots().values();
 
   /* This should not happen as we'd either have more than max_keys keys or
    * erase and get_free_key_slots() would not work properly. */
@@ -274,7 +272,7 @@ void KeysHandler::write_keys()
     throw std::runtime_error("Too many keys to write");
   }
 
-  qSort(free_slots);
+  std::sort(std::begin(free_slots), std::end(free_slots));
 
   qDebug() << "write_keys: free slots =" << free_slots;
 

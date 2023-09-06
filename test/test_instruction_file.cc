@@ -15,8 +15,8 @@ void TestInstructionFile::test_valid()
 
 %50150001
 @0x110
-%0023  
-@   0x118  
+%0023
+@   0x118
 % 31456721
 @0x120
 %3F
@@ -33,11 +33,11 @@ void TestInstructionFile::test_valid()
 
     QCOMPARE(result[0].type, Instruction::Type::text);
     QCOMPARE(result[0].address.to_int(), 0x0u);
-    QCOMPARE(result[0].to_string(), QString("SCP Firmware for MDPP-16"));
+    QCOMPARE(result[0].to_string(), QString("address=A(a0=0, a1=0, a2=0, int=0x000000), value=SCP Firmware for MDPP-16"));
 
     QCOMPARE(result[1].type, Instruction::Type::text);
     QCOMPARE(result[1].address.to_int(), 0x100u);
-    QCOMPARE(result[1].to_string(), QString("MDPP16"));
+    QCOMPARE(result[1].to_string(), QString("address=A(a0=0, a1=1, a2=0, int=0x000100), value=MDPP16"));
 
     QCOMPARE(result[2].type, Instruction::Type::binary);
     QCOMPARE(result[2].address.to_int(), 0x108u);
@@ -92,7 +92,7 @@ R"(@0x108
     // wsp only
     QString contents =
 R"(@0x108
-%   
+%
 )";
 
     QTextStream stream(&contents, QIODevice::ReadOnly);
