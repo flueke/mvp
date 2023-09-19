@@ -1,24 +1,8 @@
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
-find_package(Qt5Concurrent REQUIRED)
-find_package(Qt5Gui REQUIRED)
-find_package(Qt5SerialPort REQUIRED)
-find_package(Qt5Widgets REQUIRED)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-
-set(MVP_SOURCES
-  gui.cc
-  gui.ui
-  main.cc
-  )
-
-qt5_wrap_ui(UIC_OUT gui.ui)
-
-# Git Version file generation
-configure_file("git_sha1.cc.in" "git_sha1.cc" @ONLY)
-set(GIT_VERSION_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/git_sha1.cc")
+find_package(Qt5 COMPONENTS Concurrent Gui Network SerialPort Widgets)
 
 # Windows resource file
 if (WIN32)
@@ -28,18 +12,21 @@ if (WIN32)
     SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
 endif()
 
-add_executable(mvp WIN32 ${MVP_SOURCES} ${UIC_OUT} ${GIT_VERSION_SOURCE} ${RES_FILES})
-add_dependencies(mvp libmvp)
+# Git Version file generation
+configure_file("git_version.cc.in" "git_version.cc" @ONLY)
 
-qt5_use_modules(mvp
-  Concurrent
-  Gui
-  SerialPort
-  Widgets
-  )
+add_executable(mvp WIN32
+  "${CMAKE_CURRENT_BINARY_DIR}/git_version.cc"
+  ${RES_FILES}
+  main.cc
+)
 
-target_link_libraries(mvp libmvp)
+target_link_libraries(mvp PRIVATE libmvp)
+target_compile_options(mvp
+    PRIVATE $<${not-msvc}:-Wall -Wextra>
+    PRIVATE $<${not-msvc}:-Wno-deprecated-declarations> # disable Qt deprecation warnings
+)
 
-install(TARGETS mvp RUNTIME DESTINATION bin LIBRARY DESTINATION lib)
+install(TARGETS mvp RUNTIME DESTINATION bin)
 
 # vim: tw=0
