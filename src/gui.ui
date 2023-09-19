@@ -14,7 +14,7 @@
    <string>MVP</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../external/libmvp/src/resources.qrc">
+   <iconset resource="../external/libmvp/src/libmvp_resources.qrc">
     <normaloff>:/window-icon.png</normaloff>:/window-icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -108,7 +108,7 @@
   <tabstop>logview</tabstop>
  </tabstops>
  <resources>
-  <include location="../external/libmvp/src/resources.qrc"/>
+  <include location="../external/libmvp/src/libmvp_resources.qrc"/>
  </resources>
  <connections>
   <connection>
