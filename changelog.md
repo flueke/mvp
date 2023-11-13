@@ -1,3 +1,30 @@
+v1.1.4
+======
+
+* Perform min firmware version check when attempting to interact with a VME
+  device, not when selecting it in the UI. Allows to flash, e.g. an MDPP-32
+  through an MVLC that has firmware < FW0036.
+
+v1.1.3
+======
+
+* fix device type checks (workarounds for inconsistent naming)
+
+v1.1.2
+======
+
+* fix possible endless loops in error paths
+
+v1.1.1
+======
+
+* bugfixes
+
+v1.1.0
+======
+
+* New feature: connect to an MVLC and use the MVP interface through VME.
+
 v1.0
 ====
 
