@@ -1,3 +1,8 @@
+v1.1.5
+======
+
+* Workaround for device type checks for MCPD-8 with serial numbers < 0012
+
 v1.1.4
 ======
 
