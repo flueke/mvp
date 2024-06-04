@@ -1,3 +1,15 @@
+v1.1.7
+======
+
+* add --debug and --trace command line switches to enable verbose logging on
+  the console.
+
+v1.1.6
+======
+
+* tweak log output of the "erase flash" operation
+* fix tooltip of mvlc refresh usb devices button
+
 v1.1.5
 ======
 
