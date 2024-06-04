@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
   //auto sink = std::make_shared<spdlog::sinks::qt_color_sink_mt>(gui.getLogview(), MaxLines);
   auto sink = std::make_shared<spdlog::sinks::qt_sink_mt>(gui.getLogview(), "append");
   sink->set_pattern("%H:%M:%S: %v");
+  sink->set_level(spdlog::level::info);
   const auto LoggerNames = { "mvlc", "mvlc_mvp_lib" };
 
   if (auto logger = mesytec::mvlc::default_logger())
