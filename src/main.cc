@@ -29,6 +29,10 @@ int main(int argc, char *argv[])
   app.setApplicationVersion(mvp::mvp_version());
 
   mesytec::mvlc::set_global_log_level(spdlog::level::info);
+  if (app.arguments().contains("--debug"))
+    mesytec::mvlc::set_global_log_level(spdlog::level::debug);
+  if (app.arguments().contains("--trace"))
+    mesytec::mvlc::set_global_log_level(spdlog::level::trace);
 
   mvp::MVPLabGui gui;
 
