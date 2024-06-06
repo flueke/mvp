@@ -1,3 +1,8 @@
+v1.1.8
+======
+
+* Add workaround for certain modules when flashing via the VME interface.
+
 v1.1.7
 ======
 
