@@ -1,3 +1,8 @@
+v1.1.9
+======
+
+* Maintenance release: update to the latest mesytec-mvlc driver version.
+
 v1.1.8
 ======
 
