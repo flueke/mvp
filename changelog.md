@@ -1,3 +1,8 @@
+v1.1.9.1
+========
+
+* Add device type checks to the command line mvlc-mvp-updater tool.
+
 v1.1.9
 ======
 
