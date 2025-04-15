@@ -65,6 +65,10 @@ SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/")
 
 set(not-msvc $<NOT:$<CXX_COMPILER_ID:MSVC>>)
 
+if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+    add_definitions(-DQT_NO_DEBUG_OUTPUT)
+endif()
+
 # externals
 add_subdirectory(external)
 
