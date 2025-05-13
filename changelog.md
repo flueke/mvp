@@ -1,3 +1,8 @@
+v1.1.10
+=======
+
+* Add new 'verify-firmware' command to mvlc-mvp-updater
+
 v1.1.9.1
 ========
 
