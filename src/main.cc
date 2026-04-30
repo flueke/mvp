@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
     mesytec::mvlc::set_global_log_level(spdlog::level::trace);
 
   mvp::MVPLabGui gui;
+  gui.set_allow_otp_writes(false);
 
   #if 1
   // This way of setting up the qt sink for loggers actually does work. Care has
