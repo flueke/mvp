@@ -1,3 +1,12 @@
+v1.1.11
+=======
+
+* mvlc_mvp: handle MTDC-32_v40 and MDLL_v2 in can_flash_through_vme()
+* improve debug output
+* update mesytec-mvlc for fixes and scanbus requirements check
+* another device_type_check() fix: trim spaces from OTP data before comparison
+* improve log output when non-device-matching firmware parts are present
+
 v1.1.10
 =======
 
