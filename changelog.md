@@ -1,3 +1,8 @@
+v1.2.0
+=======
+
+* update the mesytec-mvlc driver for the new ftdi d3xx support
+
 v1.1.11
 =======
 
