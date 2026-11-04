@@ -1,4 +1,4 @@
-unreleased
+v1.2.0
 ==========
 
 * store the firmware filename in the area description section (8) when
