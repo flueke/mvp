@@ -3,7 +3,8 @@ unreleased
 
 * store the firmware filename in the area description section (8) when
   flashing. mvlc-mvp-updater: new read-description command, --no-description
-  option for write-firmware.
+  option for write-firmware. new 'Read Area Descriptions' button to print the
+  stored descriptions.
 * verify-firmware warns if the area description does not match the firmware.
 
 v1.1.11
