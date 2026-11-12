@@ -1,3 +1,10 @@
+v1.3.0
+==========
+
+* device type check: only use the OTP device type up to the first underscore.
+  Fixes VMMR-8 modules with 'VMMR8_V1' in the OTP not matching the VMMR16
+  firmware.
+
 v1.2.0
 ==========
 
