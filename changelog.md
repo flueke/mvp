@@ -1,6 +1,18 @@
-v1.2.0
-=======
+v1.3.0
+==========
 
+* device type check: only use the OTP device type up to the first underscore.
+  Fixes VMMR-8 modules with 'VMMR8_V1' in the OTP not matching the VMMR16
+  firmware.
+
+v1.2.0
+==========
+
+* store the firmware filename in the area description section (8) when
+  flashing. mvlc-mvp-updater: new read-description command, --no-description
+  option for write-firmware. new 'Read Area Descriptions' button to print the
+  stored descriptions.
+* verify-firmware warns if the area description does not match the firmware.
 * update the mesytec-mvlc driver for the new ftdi d3xx support
 
 v1.1.11
